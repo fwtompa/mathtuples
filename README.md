@@ -50,12 +50,11 @@ Wild card expansion is also applicable to tuples representing repeated symbols. 
 5. Yin Ki Ng, Dallas J. Fraser, Besat Kassaie, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Ongoing Viability of Traditional MathIR." _CLEF (Working Notes) 2021_: 63-81.
 
 ## Setup
-- Install Python 3 and ensure python from command line uses Python 3 (not Python 2)
-- `python -m build`
-- `python -m pip install dist/mathtuples-1.0-py3-none-any.whl`
+- `python3 -m build`
+- `python3 -m pip install dist/mathtuples-1.0-py3-none-any.whl`
 
 ## Testing
-  python -m mathtuples.testConvert
+  python3 -m mathtuples.testConvert
 
 ## Usage
 ```
@@ -83,4 +82,4 @@ Wild card expansion is also applicable to tuples representing repeated symbols. 
   ```
 
 ## Example with default (optimal) parameter settings
-  `python -m convert -infile [your-file]`
+  `python3 -m convert -infile [your-file]`
