@@ -28,7 +28,7 @@ Generic wild card symbols may be included in queries, as in the query formula _?
 
 Further details can be found in Dallas Fraser's Mmath thesis [4].
 
-Fraser's thesis did not consider capturing a feature that reflects repetitions of symbols. As a result, a search for _x<sup>2</sup> + 3x_ matches _x<sup>2</sup> + 3y_ fairly well, but _y<sup>2</sup> + 3y_ fairly poorly. Even if _x_ is replaced by the wild card variable _?x_, mismatched variables match as well as matched variables. To address this shortfall, a new feature has been added to capture repetitions. 
+Fraser's thesis did not consider capturing a feature that reflects repetitions of symbols. As a result, a search for _x<sup>2</sup> + 3x_ matches _x<sup>2</sup> + 3y_ fairly well, but _y<sup>2</sup> + 3y_ fairly poorly. Even if _x_ is replaced by the wild card variable _?x_, mismatched variables match as well as matched variables. To address this shortfall, a new feature has been added to capture repetitions [5]. 
 
 For every pair of repeated symbols (including variables, operators, numbers, etc.) in an SLT, based on their relative  positions one of the following tuples are generated:
 
@@ -46,11 +46,13 @@ Wild card expansion is also applicable to tuples representing repeated symbols. 
 1. Nidhin Pattaniyil, Richard Zanibbi: "Combining TF-IDF Text Retrieval with an Inverted Index over Symbol Pairs in Math Expressions: The Tangent Math Search Engine at NTCIR 2014." _NTCIR 2014_.
 2. Richard Zanibbi, Kenny Davila, Andrew Kane, Frank Wm. Tompa: "Multi-Stage Math Formula Search: Using Appearance-Based Similarity Metrics at Scale." _SIGIR 2016_: 145-154.
 3. Dallas J. Fraser, Andrew Kane, Frank Wm. Tompa: "Choosing Math Features for BM25 Ranking with Tangent-L." _DocEng 2018_: 17:1-17:10.
-4. Dallas J. Fraser: _Math Information Retrieval using a Text Search Engine._ Master’s thesis, University of Waterloo, Cheriton School of Computer Science, University ofWaterloo (2018).
+4. Dallas J. Fraser: _Math Information Retrieval using a Text Search Engine._ Master’s thesis, University of Waterloo, Cheriton School of Computer Science, University of Waterloo (2018).
+5. Yin Ki Ng, Dallas J. Fraser, Besat Kassaie, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Ongoing Viability of Traditional MathIR." _CLEF (Working Notes) 2021_: 63-81.
 
 ## Setup
-  Install Python 3 and ensure python from command line uses Python 3 (not Python 2)
-  python -m pip install mathtuples-1.0-py3-none-any.whl
+- Install Python 3 and ensure python from command line uses Python 3 (not Python 2)
+- `python -m build`
+- `python -m pip install dist/mathtuples-1.0-py3-none-any.whl`
 
 ## Testing
   python -m mathtuples.testConvert
