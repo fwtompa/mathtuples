@@ -1,0 +1,89 @@
+        <math>
+          <semantics>
+            <mrow>
+              <msub>
+                <mi>a</mi>
+                <mn>0</mn>
+              </msub>
+              <mo>+</mo>
+              <mrow>
+                <mfrac>
+                  <msub>
+                    <mi>b</mi>
+                    <mn>1</mn>
+                  </msub>
+                  <mrow>
+                    <msub>
+                      <mi>a</mi>
+                      <mn>1</mn>
+                    </msub>
+                    <mo>+</mo>
+                  </mrow>
+                </mfrac>
+                <mfrac>
+                  <msub>
+                    <mi>b</mi>
+                    <mn>2</mn>
+                  </msub>
+                  <mrow>
+                    <msub>
+                      <mi>a</mi>
+                      <mn>2</mn>
+                    </msub>
+                    <mo>+</mo>
+                  </mrow>
+                </mfrac>
+                <mi mathvariant="normal">⋯</mi>
+              </mrow>
+            </mrow>
+            <annotation-xml encoding="MathML-Content">
+              <apply>
+                <plus/>
+                <apply>
+                  <csymbol cd="ambiguous">subscript</csymbol>
+                  <ci>a</ci>
+                  <cn type="integer">0</cn>
+                </apply>
+                <apply>
+                  <times/>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <csymbol cd="ambiguous">subscript</csymbol>
+                      <ci>b</ci>
+                      <cn type="integer">1</cn>
+                    </apply>
+                    <apply>
+                      <csymbol cd="latexml">limit-from</csymbol>
+                      <apply>
+                        <csymbol cd="ambiguous">subscript</csymbol>
+                        <ci>a</ci>
+                        <cn type="integer">1</cn>
+                      </apply>
+                      <plus/>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <divide/>
+                    <apply>
+                      <csymbol cd="ambiguous">subscript</csymbol>
+                      <ci>b</ci>
+                      <cn type="integer">2</cn>
+                    </apply>
+                    <apply>
+                      <csymbol cd="latexml">limit-from</csymbol>
+                      <apply>
+                        <csymbol cd="ambiguous">subscript</csymbol>
+                        <ci>a</ci>
+                        <cn type="integer">2</cn>
+                      </apply>
+                      <plus/>
+                    </apply>
+                  </apply>
+                  <ci>normal-⋯</ci>
+                </apply>
+              </apply>
+            </annotation-xml>
+            <annotation encoding="application/x-tex">a_{0}+\frac{b_{1}}{a_{1}+}\frac{b_{2}}{a_{2}+}\cdots</annotation>
+          </semantics>
+        </math>

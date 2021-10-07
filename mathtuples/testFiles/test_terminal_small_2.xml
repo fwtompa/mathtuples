@@ -1,0 +1,9 @@
+<m:math>
+  <m:semantics xml:id="m191.1a" xref="m191.1.pmml">
+    <m:ci xml:id="m191.1.1" xref="m191.1.1.pmml">𝒔</m:ci>
+    <m:annotation-xml encoding="MathML-Presentation" xml:id="m191.1.pmml" xref="m191.1">
+      <m:mi xml:id="m191.1.1.pmml" xref="m191.1.1">𝒔</m:mi>
+    </m:annotation-xml>
+    <m:annotation encoding="application/x-tex" xml:id="m191.1b" xref="m191.1.pmml">{\boldsymbol{s}}</m:annotation>
+  </m:semantics>
+</m:math>

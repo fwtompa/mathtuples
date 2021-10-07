@@ -1,0 +1,32 @@
+        <m:math>
+          <m:semantics xml:id="m17.1a">
+            <m:apply xml:id="m17.1.5" xref="m17.1.5.pmml">
+              <m:eq xml:id="m17.1.3" xref="m17.1.3.pmml"/>
+              <m:apply xml:id="m17.1.5.1" xref="m17.1.5.1.pmml">
+                <m:csymbol cd="ambiguous" xml:id="m17.1.5.1.1">subscript</m:csymbol>
+                <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="a"/>
+                <m:apply xml:id="m17.1.2.1" xref="m17.1.2.1.pmml">
+                  <m:times xml:id="m17.1.2.1.3" xref="m17.1.2.1.3.pmml"/>
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="i"/>
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="j"/>
+                </m:apply>
+              </m:apply>
+              <m:cn type="integer" xml:id="m17.1.4" xref="m17.1.4.pmml">1</m:cn>
+            </m:apply>
+            <m:annotation-xml encoding="MathML-Presentation" xml:id="m17.1b">
+              <m:mrow xml:id="m17.1.5.pmml" xref="m17.1.5">
+                <m:msub xml:id="m17.1.5.1.pmml" xref="m17.1.5.1">
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="a"/>
+                  <m:mrow xml:id="m17.1.2.1.pmml" xref="m17.1.2.1">
+                    <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="i"/>
+                    <m:mo xml:id="m17.1.2.1.3.pmml" xref="m17.1.2.1.3">⁢</m:mo>
+                    <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="j"/>
+                  </m:mrow>
+                </m:msub>
+                <m:mo xml:id="m17.1.3.pmml" xref="m17.1.3">=</m:mo>
+                <m:mn xml:id="m17.1.4.pmml" xref="m17.1.4">1</m:mn>
+              </m:mrow>
+            </m:annotation-xml>
+            <m:annotation encoding="application/x-tex" xml:id="m17.1c">\qvar@construct{a}_{\qvar@construct{i}\qvar@construct{j}}=1</m:annotation>
+          </m:semantics>
+        </m:math>

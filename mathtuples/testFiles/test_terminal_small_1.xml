@@ -1,0 +1,9 @@
+<m:math>
+  <m:semantics xml:id="m107.1a" xref="m107.1.pmml">
+    <m:ci xml:id="m107.1.2" xref="m107.1.2.pmml">𝖿𝗏</m:ci>
+    <m:annotation-xml encoding="MathML-Presentation" xml:id="m107.1.pmml" xref="m107.1">
+      <m:mi xml:id="m107.1.2.pmml" xref="m107.1.2">𝖿𝗏</m:mi>
+    </m:annotation-xml>
+    <m:annotation encoding="application/x-tex" xml:id="m107.1b" xref="m107.1.pmml">{\mathsf{fv}}</m:annotation>
+  </m:semantics>
+</m:math>

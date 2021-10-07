@@ -1,0 +1,51 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML" xref="S2.p16.1.m2.1.cmml" alttext="\alpha_{0}(x_{1})=y_{0}" class="ltx_Math" id="S2.p16.1.m2.1" display="inline">
+    <semantics xref="S2.p16.1.m2.1.cmml" id="S2.p16.1.m2.1a">
+        <mrow xref="S2.p16.1.m2.1.17.cmml" id="S2.p16.1.m2.1.17">
+        <mrow xref="S2.p16.1.m2.1.17.2.cmml" id="S2.p16.1.m2.1.17.2">
+        <msub xref="S2.p16.1.m2.1.17.2.2.cmml" id="S2.p16.1.m2.1.17.2.2">
+            <mi xref="S2.p16.1.m2.1.1.cmml" id="S2.p16.1.m2.1.1">α</mi>
+            <mn xref="S2.p16.1.m2.1.2.1.cmml" id="S2.p16.1.m2.1.2.1">0</mn>
+        </msub>
+        <mo xref="S2.p16.1.m2.1.17.2.1.cmml" id="S2.p16.1.m2.1.17.2.1">⁢</mo>
+        <mrow xref="S2.p16.1.m2.1.17.2.3.cmml" id="S2.p16.1.m2.1.17.2.3">
+        <mo xref="S2.p16.1.m2.1.17.2.3.cmml" id="S2.p16.1.m2.1.17.2.3a">(</mo>
+        <msub xref="S2.p16.1.m2.1.17.2.3.cmml" id="S2.p16.1.m2.1.17.2.3b">
+            <mi xref="S2.p16.1.m2.1.4.cmml" id="S2.p16.1.m2.1.4">x</mi>
+            <mn xref="S2.p16.1.m2.1.5.1.cmml" id="S2.p16.1.m2.1.5.1">0</mn>
+        </msub>
+        <mo xref="S2.p16.1.m2.1.17.2.3.cmml" id="S2.p16.1.m2.1.17.2.3c">)</mo>
+        </mrow>
+        </mrow>
+        
+        <mo xref="S2.p16.1.m2.1.14.cmml" id="S2.p16.1.m2.1.14">=</mo>
+        <msub xref="S2.p16.1.m2.1.17.4.cmml" id="S2.p16.1.m2.1.17.4">
+        <mi xref="S2.p16.1.m2.1.15.cmml" id="S2.p16.1.m2.1.15">y</mi>
+        <mn xref="S2.p16.1.m2.1.16.1.cmml" id="S2.p16.1.m2.1.16.1">0</mn>
+        </msub></mrow>
+        <annotation-xml xref="S2.p16.1.m2.1" id="S2.p16.1.m2.1.cmml" encoding="MathML-Content">
+        <apply xref="S2.p16.1.m2.1.17" id="S2.p16.1.m2.1.17b.cmml">
+        <eq xref="S2.p16.1.m2.1.7" id="S2.p16.1.m2.1.7.cmml"></eq>
+        <apply xref="S2.p16.1.m2.1.17.2" id="S2.p16.1.m2.1.17.2.cmml">
+        <times xref="S2.p16.1.m2.1.17.2.1" id="S2.p16.1.m2.1.17.2.1.cmml"></times>
+        <apply xref="S2.p16.1.m2.1.17.2.2" id="S2.p16.1.m2.1.17.2.2.cmml">
+            <csymbol cd="ambiguous" id="S2.p16.1.m2.1.17.2.2.1.cmml">subscript</csymbol>
+            <ci xref="S2.p16.1.m2.1.1" id="S2.p16.1.m2.1.1.cmml">α</ci>
+            <cn xref="S2.p16.1.m2.1.2.1" id="S2.p16.1.m2.1.2.1.cmml" type="integer">0</cn>
+        </apply>
+        <apply xref="S2.p16.1.m2.1.17.2.3" id="S2.p16.1.m2.1.17.2.3.cmml">
+            <csymbol cd="ambiguous" id="S2.p16.1.m2.1.17.2.3.1.cmml">subscript</csymbol>
+            <ci xref="S2.p16.1.m2.1.4" id="S2.p16.1.m2.1.4.cmml">x</ci>
+            <cn xref="S2.p16.1.m2.1.5.1" id="S2.p16.1.m2.1.5.1.cmml" type="integer">1</cn>
+        </apply>
+        </apply>
+        <apply xref="S2.p16.1.m2.1.17.4" id="S2.p16.1.m2.1.17.4.cmml">
+                <csymbol cd="ambiguous" id="S2.p16.1.m2.1.17.4.1.cmml">subscript</csymbol>
+                <ci xref="S2.p16.1.m2.1.15" id="S2.p16.1.m2.1.15.cmml">y</ci>
+                <cn xref="S2.p16.1.m2.1.16.1" id="S2.p16.1.m2.1.16.1.cmml" type="integer">0</cn>
+        </apply>
+        </apply>
+        </annotation-xml><annotation xref="S2.p16.1.m2.1.cmml" id="S2.p16.1.m2.1b" encoding="application/x-tex">
+            \alpha_{0}(x_{1})=y_{0}
+        </annotation>
+    </semantics>
+</math>

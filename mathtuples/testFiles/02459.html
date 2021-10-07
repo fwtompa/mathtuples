@@ -1,0 +1,1197 @@
+<html lang="en">
+<head> <meta charset="UTF-8" /> </head>
+<body>
+<p><b>Van der Waerden's theorem</b> is a theorem in the branch of <a href="../../../../articles/00626.html" title="Mathematics">mathematics</a> called <a href="http://127.0.0.1:8080/w/index.php?title=Ramsey_theory&amp;action=edit&amp;redlink=1" class="new" title="Ramsey theory (page does not exist)">Ramsey theory</a>. Van der Waerden's theorem states that for any given positive <a href="../../../../articles/00507.html" title="Integer">integers</a> <i>r</i> and <i>k</i>, there is some number <i>N</i> such that if the integers {1, 2, ..., <i>N</i>} are colored, each with one of <i>r</i> different colors, then there are at least <i>k</i> integers in <a href="../../../../articles/02572.html" title="Arithmetic progression">arithmetic progression</a> all of the same color. The least such <i>N</i> is the <a href="../../../../articles/15834.html" title="Van der Waerden number">Van der Waerden number</a> <i>W</i>(<i>r</i>,&#160;<i>k</i>). It is named after the Dutch mathematician <a href="http://127.0.0.1:8080/w/index.php?title=Bartel_Leendert_van_der_Waerden&amp;action=edit&amp;redlink=1" class="new" title="Bartel Leendert van der Waerden (page does not exist)">B. L. van der Waerden</a>.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[1]</a></sup></p>
+<p>For example, when <i>r</i> = 2, you have two colors, say <span style="color:red;">red</span> and <span style="color:blue;">blue</span>. <i>W</i>(2, 3) is bigger than 8, because you can color the integers from {1, ..., 8} like this:</p>
+<table class="wikitable">
+<tr>
+<td>&#160;1&#160;</td>
+<td>&#160;2&#160;</td>
+<td>&#160;3&#160;</td>
+<td>&#160;4&#160;</td>
+<td>&#160;5&#160;</td>
+<td>&#160;6&#160;</td>
+<td>&#160;7&#160;</td>
+<td>&#160;8&#160;</td>
+</tr>
+<tr>
+<td>&#160;<b><span style="color:blue;">B</span></b>&#160;</td>
+<td>&#160;<b><span style="color:red;">R</span></b>&#160;</td>
+<td>&#160;<b><span style="color:red;">R</span></b>&#160;</td>
+<td>&#160;<b><span style="color:blue;">B</span></b>&#160;</td>
+<td>&#160;<b><span style="color:blue;">B</span></b>&#160;</td>
+<td>&#160;<b><span style="color:red;">R</span></b>&#160;</td>
+<td>&#160;<b><span style="color:red;">R</span></b>&#160;</td>
+<td>&#160;<b><span style="color:blue;">B</span></b>&#160;</td>
+</tr>
+</table>
+<p>and no three integers of the same color form an <a href="../../../../articles/02572.html" title="Arithmetic progression">arithmetic progression</a>. But you can't add a ninth integer to the end without creating such a progression. If you add a <span style="color:red;">red 9</span>, then the <span style="color:red;">red 3</span>, <span style="color:red;">6</span>, and <span style="color:red;">9</span> are in arithmetic progression. Alternatively, if you add a <span style="color:blue;">blue 9</span>, then the <span style="color:blue;">blue 1</span>, <span style="color:blue;">5</span>, and <span style="color:blue;">9</span> are in arithmetic progression. In fact, there is no way of coloring 1 through 9 without creating such a progression. Therefore, <i>W</i>(2, 3) is 9.</p>
+<p>It is an open problem to determine the values of <i>W</i>(<i>r</i>, <i>k</i>) for most values of <i>r</i> and <i>k</i>. The proof of the theorem provides only an upper bound. For the case of <i>r</i> = 2 and <i>k</i> = 3, for example, the argument given below shows that it is sufficient to color the integers {1, ..., 325} with two colors to guarantee there will be a single-colored arithmetic progression of length 3. But in fact, the bound of 325 is very loose; the minimum required number of integers is only 9. Any coloring of the integers {1, ..., 9} will have three evenly spaced integers of one color.</p>
+<p>For <i>r</i> = 3 and <i>k</i> = 3, the bound given by the theorem is 7(2·3<sup>7</sup>&#160;+&#160;1)(2·3<sup>7·(2·3<sup>7</sup>&#160;+&#160;1)</sup>&#160;+&#160;1), or approximately 4.22·10<sup>14616</sup>. But actually, you don't need that many integers to guarantee a single-colored progression of length 3; you only need 27. (And it is possible to color {1, ..., 26} with three colors so that there is no single-colored arithmetic progression of length 3; for example, RRYYRRYBYBBRBRRYRYYBRBBYBY.)</p>
+<p>Anyone who can reduce the general upper bound to any 'reasonable' function can win a large cash prize. <a href="http://127.0.0.1:8080/w/index.php?title=Ronald_Graham&amp;action=edit&amp;redlink=1" class="new" title="Ronald Graham (page does not exist)">Ronald Graham</a> has offered a prize of <a href="http://127.0.0.1:8080/w/index.php?title=US$&amp;action=edit&amp;redlink=1" class="new" title="US$ (page does not exist)">US$</a>1000 for showing <i>W</i>(2,<i>k</i>)&lt;2<sup><i>k</i><sup>2</sup></sup>.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2">[2]</a></sup> The best upper bound currently known is due to <a href="../../../../articles/04328.html" title="Timothy Gowers">Timothy Gowers</a>,<sup id="cite_ref-3" class="reference"><a href="#cite_note-3">[3]</a></sup> who establishes</p>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.0" class="ltx_Math" alttext="{\displaystyle W(r,k)\leq 2^{{2^{{r^{{2^{{2^{{k+9}}}}}}}}}},}"  xml:id="math.2459.0.1" xref="math.2459.0.1.cmml">
+  <semantics xml:id="math.2459.0.1a" xref="math.2459.0.1.cmml">
+    <mrow xml:id="math.2459.0.1.11" xref="math.2459.0.1.11.cmml">
+      <mrow xml:id="math.2459.0.1.11a" xref="math.2459.0.1.11.cmml">
+        <mrow xml:id="math.2459.0.1.11.1" xref="math.2459.0.1.11.1.cmml">
+          <mi xml:id="math.2459.0.1.1" xref="math.2459.0.1.1.cmml">W</mi>
+          <mo xml:id="math.2459.0.1.11.1.1" xref="math.2459.0.1.11.1.1.cmml">⁢</mo>
+          <mrow xml:id="math.2459.0.1.11.1.2" xref="math.2459.0.1.11.1.2.cmml">
+            <mo xml:id="math.2459.0.1.11.1.2a" xref="math.2459.0.1.11.1.2.cmml">(</mo>
+            <mrow xml:id="math.2459.0.1.11.1.2b" xref="math.2459.0.1.11.1.2.cmml">
+              <mi xml:id="math.2459.0.1.3" xref="math.2459.0.1.3.cmml">r</mi>
+              <mo xml:id="math.2459.0.1.11.1.2c" xref="math.2459.0.1.11.1.2.cmml">,</mo>
+              <mi xml:id="math.2459.0.1.5" xref="math.2459.0.1.5.cmml">k</mi>
+            </mrow>
+            <mo xml:id="math.2459.0.1.11.1.2d" xref="math.2459.0.1.11.1.2.cmml">)</mo>
+          </mrow>
+        </mrow>
+        <mo xml:id="math.2459.0.1.7" xref="math.2459.0.1.7.cmml">≤</mo>
+        <msup xml:id="math.2459.0.1.11.2" xref="math.2459.0.1.11.2.cmml">
+          <mn xml:id="math.2459.0.1.8" xref="math.2459.0.1.8.cmml">2</mn>
+          <msup xml:id="math.2459.0.1.9.1" xref="math.2459.0.1.9.1.cmml">
+            <mn xml:id="math.2459.0.1.9.1.1" xref="math.2459.0.1.9.1.1.cmml">2</mn>
+            <msup xml:id="math.2459.0.1.9.1.2.1" xref="math.2459.0.1.9.1.2.1.cmml">
+              <mi xml:id="math.2459.0.1.9.1.2.1.1" xref="math.2459.0.1.9.1.2.1.1.cmml">r</mi>
+              <msup xml:id="math.2459.0.1.9.1.2.1.2.1" xref="math.2459.0.1.9.1.2.1.2.1.cmml">
+                <mn xml:id="math.2459.0.1.9.1.2.1.2.1.1" xref="math.2459.0.1.9.1.2.1.2.1.1.cmml">2</mn>
+                <msup xml:id="math.2459.0.1.9.1.2.1.2.1.2.1" xref="math.2459.0.1.9.1.2.1.2.1.2.1.cmml">
+                  <mn xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.1" xref="math.2459.0.1.9.1.2.1.2.1.2.1.1.cmml">2</mn>
+                  <mrow xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.cmml">
+                    <mi xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.1" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.1.cmml">k</mi>
+                    <mo xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.2" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.2.cmml">+</mo>
+                    <mn xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.3" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.3.cmml">9</mn>
+                  </mrow>
+                </msup>
+              </msup>
+            </msup>
+          </msup>
+        </msup>
+      </mrow>
+      <mo xml:id="math.2459.0.1.11b" xref="math.2459.0.1.11.cmml">,</mo>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.0.1.cmml" xref="math.2459.0.1">
+      <apply xml:id="math.2459.0.1.11.cmml" xref="math.2459.0.1.11">
+        <leq xml:id="math.2459.0.1.7.cmml" xref="math.2459.0.1.7"/>
+        <apply xml:id="math.2459.0.1.11.1.cmml" xref="math.2459.0.1.11.1">
+          <times xml:id="math.2459.0.1.11.1.1.cmml" xref="math.2459.0.1.11.1.1"/>
+          <ci xml:id="math.2459.0.1.1.cmml" xref="math.2459.0.1.1">W</ci>
+          <apply xml:id="math.2459.0.1.11.1.2.cmml" xref="math.2459.0.1.11.1.2">
+            <interval closure="open" xml:id="math.2459.0.1.11.1.2.1.cmml"/>
+            <ci xml:id="math.2459.0.1.3.cmml" xref="math.2459.0.1.3">r</ci>
+            <ci xml:id="math.2459.0.1.5.cmml" xref="math.2459.0.1.5">k</ci>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.0.1.11.2.cmml" xref="math.2459.0.1.11.2">
+          <csymbol cd="ambiguous" xml:id="math.2459.0.1.11.2.1.cmml">superscript</csymbol>
+          <cn type="integer" xml:id="math.2459.0.1.8.cmml" xref="math.2459.0.1.8">2</cn>
+          <apply xml:id="math.2459.0.1.9.1.cmml" xref="math.2459.0.1.9.1">
+            <csymbol cd="ambiguous" xml:id="math.2459.0.1.9.1.3.cmml">superscript</csymbol>
+            <cn type="integer" xml:id="math.2459.0.1.9.1.1.cmml" xref="math.2459.0.1.9.1.1">2</cn>
+            <apply xml:id="math.2459.0.1.9.1.2.1.cmml" xref="math.2459.0.1.9.1.2.1">
+              <csymbol cd="ambiguous" xml:id="math.2459.0.1.9.1.2.1.3.cmml">superscript</csymbol>
+              <ci xml:id="math.2459.0.1.9.1.2.1.1.cmml" xref="math.2459.0.1.9.1.2.1.1">r</ci>
+              <apply xml:id="math.2459.0.1.9.1.2.1.2.1.cmml" xref="math.2459.0.1.9.1.2.1.2.1">
+                <csymbol cd="ambiguous" xml:id="math.2459.0.1.9.1.2.1.2.1.3.cmml">superscript</csymbol>
+                <cn type="integer" xml:id="math.2459.0.1.9.1.2.1.2.1.1.cmml" xref="math.2459.0.1.9.1.2.1.2.1.1">2</cn>
+                <apply xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.cmml" xref="math.2459.0.1.9.1.2.1.2.1.2.1">
+                  <csymbol cd="ambiguous" xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.3.cmml">superscript</csymbol>
+                  <cn type="integer" xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.1.cmml" xref="math.2459.0.1.9.1.2.1.2.1.2.1.1">2</cn>
+                  <apply xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.cmml" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1">
+                    <plus xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.2.cmml" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.2"/>
+                    <ci xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.1.cmml" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.1">k</ci>
+                    <cn type="integer" xml:id="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.3.cmml" xref="math.2459.0.1.9.1.2.1.2.1.2.1.2.1.3">9</cn>
+                  </apply>
+                </apply>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.0.1b" xref="math.2459.0.1.cmml">{\displaystyle W(r,k)\leq 2^{{2^{{r^{{2^{{2^{{k+9}}}}}}}}}},}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=0e0d05d31e301e5c843af2ddb98186e2&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=0e0d05d31e301e5c843af2ddb98186e2&amp;mode=0" /></span></dd>
+</dl>
+<p>by first establishing a similar result for <a href="../../../../articles/05732.html" title="Szemerédi's theorem">Szemerédi's theorem</a>, which is a stronger version of Van der Waerden's theorem. The previously best-known bound was due to <a href="http://127.0.0.1:8080/w/index.php?title=Saharon_Shelah&amp;action=edit&amp;redlink=1" class="new" title="Saharon Shelah (page does not exist)">Saharon Shelah</a> and proceeded via first proving a result for the <a href="http://127.0.0.1:8080/w/index.php?title=Hales%E2%80%93Jewett_theorem&amp;action=edit&amp;redlink=1" class="new" title="Hales–Jewett theorem (page does not exist)">Hales–Jewett theorem</a>, which is another strengthening of Van der Waerden's theorem.</p>
+<p>The best lower bound currently known for <span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.1" class="ltx_Math" alttext="{\displaystyle W(2,k)}"  xml:id="math.2459.1.1" xref="math.2459.1.1.cmml">
+  <semantics xml:id="math.2459.1.1a" xref="math.2459.1.1.cmml">
+    <mrow xml:id="math.2459.1.1.7" xref="math.2459.1.1.7.cmml">
+      <mi xml:id="math.2459.1.1.1" xref="math.2459.1.1.1.cmml">W</mi>
+      <mo xml:id="math.2459.1.1.7.1" xref="math.2459.1.1.7.1.cmml">⁢</mo>
+      <mrow xml:id="math.2459.1.1.7.2" xref="math.2459.1.1.7.2.cmml">
+        <mo xml:id="math.2459.1.1.7.2a" xref="math.2459.1.1.7.2.cmml">(</mo>
+        <mrow xml:id="math.2459.1.1.7.2b" xref="math.2459.1.1.7.2.cmml">
+          <mn xml:id="math.2459.1.1.3" xref="math.2459.1.1.3.cmml">2</mn>
+          <mo xml:id="math.2459.1.1.7.2c" xref="math.2459.1.1.7.2.cmml">,</mo>
+          <mi xml:id="math.2459.1.1.5" xref="math.2459.1.1.5.cmml">k</mi>
+        </mrow>
+        <mo xml:id="math.2459.1.1.7.2d" xref="math.2459.1.1.7.2.cmml">)</mo>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.1.1.cmml" xref="math.2459.1.1">
+      <apply xml:id="math.2459.1.1.7.cmml" xref="math.2459.1.1.7">
+        <times xml:id="math.2459.1.1.7.1.cmml" xref="math.2459.1.1.7.1"/>
+        <ci xml:id="math.2459.1.1.1.cmml" xref="math.2459.1.1.1">W</ci>
+        <apply xml:id="math.2459.1.1.7.2.cmml" xref="math.2459.1.1.7.2">
+          <interval closure="open" xml:id="math.2459.1.1.7.2.1.cmml"/>
+          <cn type="integer" xml:id="math.2459.1.1.3.cmml" xref="math.2459.1.1.3">2</cn>
+          <ci xml:id="math.2459.1.1.5.cmml" xref="math.2459.1.1.5">k</ci>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.1.1b" xref="math.2459.1.1.cmml">{\displaystyle W(2,k)}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 7.667ex; height: 2.444ex; vertical-align: -0.778ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=78cea9accdb900d214fef6178f82532b&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=78cea9accdb900d214fef6178f82532b&amp;mode=0" /></span> is that for all positive <span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.2" class="ltx_Math" alttext="{\displaystyle\varepsilon}"  xml:id="math.2459.2.1" xref="math.2459.2.1.cmml">
+  <semantics xml:id="math.2459.2.1a" xref="math.2459.2.1.cmml">
+    <mi xml:id="math.2459.2.1.1" xref="math.2459.2.1.1.cmml">ε</mi>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.2.1.cmml" xref="math.2459.2.1">
+      <ci xml:id="math.2459.2.1.1.cmml" xref="math.2459.2.1.1">ε</ci>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.2.1b" xref="math.2459.2.1.cmml">{\displaystyle\varepsilon}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 1.125ex; height: 1.25ex; vertical-align: -0.25ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=f8b1c5a729a09649c275fca88976d8dd&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=f8b1c5a729a09649c275fca88976d8dd&amp;mode=0" /></span> we have <span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.3" class="ltx_Math" alttext="{\displaystyle W(2,k)&gt;2^{k}/k^{\varepsilon}}"  xml:id="math.2459.3.1" xref="math.2459.3.1.cmml">
+  <semantics xml:id="math.2459.3.1a" xref="math.2459.3.1.cmml">
+    <mrow xml:id="math.2459.3.1.13" xref="math.2459.3.1.13.cmml">
+      <mrow xml:id="math.2459.3.1.13.1" xref="math.2459.3.1.13.1.cmml">
+        <mi xml:id="math.2459.3.1.1" xref="math.2459.3.1.1.cmml">W</mi>
+        <mo xml:id="math.2459.3.1.13.1.1" xref="math.2459.3.1.13.1.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.3.1.13.1.2" xref="math.2459.3.1.13.1.2.cmml">
+          <mo xml:id="math.2459.3.1.13.1.2a" xref="math.2459.3.1.13.1.2.cmml">(</mo>
+          <mrow xml:id="math.2459.3.1.13.1.2b" xref="math.2459.3.1.13.1.2.cmml">
+            <mn xml:id="math.2459.3.1.3" xref="math.2459.3.1.3.cmml">2</mn>
+            <mo xml:id="math.2459.3.1.13.1.2c" xref="math.2459.3.1.13.1.2.cmml">,</mo>
+            <mi xml:id="math.2459.3.1.5" xref="math.2459.3.1.5.cmml">k</mi>
+          </mrow>
+          <mo xml:id="math.2459.3.1.13.1.2d" xref="math.2459.3.1.13.1.2.cmml">)</mo>
+        </mrow>
+      </mrow>
+      <mo xml:id="math.2459.3.1.7" xref="math.2459.3.1.7.cmml">&gt;</mo>
+      <mrow xml:id="math.2459.3.1.13.2" xref="math.2459.3.1.13.2.cmml">
+        <msup xml:id="math.2459.3.1.13.2.1" xref="math.2459.3.1.13.2.1.cmml">
+          <mn xml:id="math.2459.3.1.8" xref="math.2459.3.1.8.cmml">2</mn>
+          <mi xml:id="math.2459.3.1.9.1" xref="math.2459.3.1.9.1.cmml">k</mi>
+        </msup>
+        <mo xml:id="math.2459.3.1.10" xref="math.2459.3.1.10.cmml">/</mo>
+        <msup xml:id="math.2459.3.1.13.2.2" xref="math.2459.3.1.13.2.2.cmml">
+          <mi xml:id="math.2459.3.1.11" xref="math.2459.3.1.11.cmml">k</mi>
+          <mi xml:id="math.2459.3.1.12.1" xref="math.2459.3.1.12.1.cmml">ε</mi>
+        </msup>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.3.1.cmml" xref="math.2459.3.1">
+      <apply xml:id="math.2459.3.1.13.cmml" xref="math.2459.3.1.13">
+        <gt xml:id="math.2459.3.1.7.cmml" xref="math.2459.3.1.7"/>
+        <apply xml:id="math.2459.3.1.13.1.cmml" xref="math.2459.3.1.13.1">
+          <times xml:id="math.2459.3.1.13.1.1.cmml" xref="math.2459.3.1.13.1.1"/>
+          <ci xml:id="math.2459.3.1.1.cmml" xref="math.2459.3.1.1">W</ci>
+          <apply xml:id="math.2459.3.1.13.1.2.cmml" xref="math.2459.3.1.13.1.2">
+            <interval closure="open" xml:id="math.2459.3.1.13.1.2.1.cmml"/>
+            <cn type="integer" xml:id="math.2459.3.1.3.cmml" xref="math.2459.3.1.3">2</cn>
+            <ci xml:id="math.2459.3.1.5.cmml" xref="math.2459.3.1.5">k</ci>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.3.1.13.2.cmml" xref="math.2459.3.1.13.2">
+          <divide xml:id="math.2459.3.1.10.cmml" xref="math.2459.3.1.10"/>
+          <apply xml:id="math.2459.3.1.13.2.1.cmml" xref="math.2459.3.1.13.2.1">
+            <csymbol cd="ambiguous" xml:id="math.2459.3.1.13.2.1.1.cmml">superscript</csymbol>
+            <cn type="integer" xml:id="math.2459.3.1.8.cmml" xref="math.2459.3.1.8">2</cn>
+            <ci xml:id="math.2459.3.1.9.1.cmml" xref="math.2459.3.1.9.1">k</ci>
+          </apply>
+          <apply xml:id="math.2459.3.1.13.2.2.cmml" xref="math.2459.3.1.13.2.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.3.1.13.2.2.1.cmml">superscript</csymbol>
+            <ci xml:id="math.2459.3.1.11.cmml" xref="math.2459.3.1.11">k</ci>
+            <ci xml:id="math.2459.3.1.12.1.cmml" xref="math.2459.3.1.12.1">ε</ci>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.3.1b" xref="math.2459.3.1.cmml">{\displaystyle W(2,k)&gt;2^{k}/k^{\varepsilon}}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 16.5ex; height: 2.75ex; vertical-align: -0.75ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=00009654348eebd7ab85d8599c25aace&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=00009654348eebd7ab85d8599c25aace&amp;mode=0" /></span> , for all sufficiently large <span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.4" class="ltx_Math" alttext="{\displaystyle k}"  xml:id="math.2459.4.1" xref="math.2459.4.1.cmml">
+  <semantics xml:id="math.2459.4.1a" xref="math.2459.4.1.cmml">
+    <mi xml:id="math.2459.4.1.1" xref="math.2459.4.1.1.cmml">k</mi>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.4.1.cmml" xref="math.2459.4.1">
+      <ci xml:id="math.2459.4.1.1.cmml" xref="math.2459.4.1.1">k</ci>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.4.1b" xref="math.2459.4.1.cmml">{\displaystyle k}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 1.25ex; height: 1.75ex; vertical-align: -0.125ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=8ce4b16b22b58894aa86c421e8759df3&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=8ce4b16b22b58894aa86c421e8759df3&amp;mode=0" /></span> .<sup id="cite_ref-4" class="reference"><a href="#cite_note-4">[4]</a></sup></p>
+<div id="toc" class="toc">
+<div id="toctitle">
+<h2>Contents</h2>
+</div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Proof_of_Van_der_Waerden.27s_theorem_.28in_a_special_case.29"><span class="tocnumber">1</span> <span class="toctext">Proof of Van der Waerden's theorem (in a special case)</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Proof"><span class="tocnumber">2</span> <span class="toctext">Proof</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#External_links"><span class="tocnumber">5</span> <span class="toctext">External links</span></a></li>
+</ul>
+</div>
+<h2><span class="mw-headline" id="Proof_of_Van_der_Waerden.27s_theorem_.28in_a_special_case.29">Proof of Van der Waerden's theorem (in a special case)</span></h2>
+<p>The following proof is due to <a href="http://127.0.0.1:8080/w/index.php?title=Ronald_Graham&amp;action=edit&amp;redlink=1" class="new" title="Ronald Graham (page does not exist)">Ron Graham</a> and B.L. Rothschild.<sup id="cite_ref-Graham1974_5-0" class="reference"><a href="#cite_note-Graham1974-5">[5]</a></sup> <a href="http://127.0.0.1:8080/w/index.php?title=A._Ya._Khinchin&amp;action=edit&amp;redlink=1" class="new" title="A. Ya. Khinchin (page does not exist)">Khinchin</a><sup id="cite_ref-6" class="reference"><a href="#cite_note-6">[6]</a></sup> gives a fairly simple proof of the theorem without estimating <i>W</i>(<i>r</i>,&#160;<i>k</i>).</p>
+<p>We will prove the special case mentioned above, that <i>W</i>(2, 3) ≤ 325. Let <i>c</i>(<i>n</i>) be a coloring of the integers {1, ..., 325}. We will find three elements of {1, ..., 325} in arithmetic progression that are the same color.</p>
+<p>Divide {1, ..., 325} into the 65 blocks {1, ..., 5}, {6, ..., 10}, ... {321, ..., 325}, thus each block is of the form {<i>b</i> ·5 + 1, ..., <i>b</i> ·5 + 5} for some <i>b</i> in {0, ..., 64}. Since each integer is colored either red or blue, each block is colored in one of 32 different ways. By the <a href="../../../../articles/01711.html" title="Pigeonhole principle">pigeonhole principle</a>, there are two blocks among the first 33 blocks that are colored identically. That is, there are two integers <i>b</i><sub>1</sub> and <i>b</i><sub>2</sub>, both in {0,...,32}, such that</p>
+<dl>
+<dd><i>c</i>(<i>b</i><sub>1</sub>·5 + <i>k</i>) = <i>c</i>(<i>b</i><sub>2</sub>·5 + <i>k</i>)</dd>
+</dl>
+<p>for all <i>k</i> in {1, ..., 5}. Among the three integers <i>b</i><sub>1</sub>·5 + 1, <i>b</i><sub>1</sub>·5 + 2, <i>b</i><sub>1</sub>·5 + 3, there must be at least two that are the same color. (The <a href="../../../../articles/01711.html" title="Pigeonhole principle">pigeonhole principle</a> again.) Call these <i>b</i><sub>1</sub>·5 + <i>a</i><sub>1</sub> and <i>b</i><sub>1</sub>·5 + <i>a</i><sub>2</sub>, where the <i>a</i><sub><i>i</i></sub> are in {1,2,3} and <i>a</i><sub>1</sub> &lt; <i>a</i><sub>2</sub>. Suppose (without loss of generality) that these two integers are both red. (If they are both blue, just exchange 'red' and 'blue' in what follows.)</p>
+<p>Let <i>a</i><sub>3</sub> = 2·<i>a</i><sub>2</sub>&#160;−&#160;<i>a</i><sub>1</sub>. If <i>b</i><sub>1</sub>·5 + <i>a</i><sub>3</sub> is red, then we have found our arithmetic progression: <i>b</i><sub>1</sub>·5&#160;+&#160;<i>a</i><sub><i>i</i></sub> are all red.</p>
+<p>Otherwise, <i>b</i><sub>1</sub>·5 + <i>a</i><sub>3</sub> is blue. Since <i>a</i><sub>3</sub> ≤ 5, <i>b</i><sub>1</sub>·5 + <i>a</i><sub>3</sub> is in the <i>b</i><sub>1</sub> block, and since the <i>b</i><sub>2</sub> block is colored identically, <i>b</i><sub>2</sub>·5 + <i>a</i><sub>3</sub> is also blue.</p>
+<p>Now let <i>b</i><sub>3</sub> = 2·<i>b</i><sub>2</sub>&#160;−&#160;<i>b</i><sub>1</sub>. Then <i>b</i><sub>3</sub> ≤ 64. Consider the integer <i>b</i><sub>3</sub>·5 + <i>a</i><sub>3</sub>, which must be ≤ 325. What color is it?</p>
+<p>If it is red, then <i>b</i><sub>1</sub>·5 + <i>a</i><sub>1</sub>, <i>b</i><sub>2</sub>·5 + <i>a</i><sub>2</sub>, and <i>b</i><sub>3</sub>·5 + <i>a</i><sub>3</sub> form a red arithmetic progression. But if it is blue, then <i>b</i><sub>1</sub>·5 + <i>a</i><sub>3</sub>, <i>b</i><sub>2</sub>·5 + <i>a</i><sub>3</sub>, and <i>b</i><sub>3</sub>·5 + <i>a</i><sub>3</sub> form a blue arithmetic progression. Either way, we are done.</p>
+<p>A similar argument can be advanced to show that <i>W</i>(3, 3) ≤ 7(2·3<sup>7</sup>+1)(2·3<sup>7·(2·3<sup>7</sup>+1)</sup>+1). One begins by dividing the integers into 2·3<sup>7·(2·3<sup>7</sup>&#160;+&#160;1)</sup>&#160;+&#160;1 groups of 7(2·3<sup>7</sup>&#160;+&#160;1) integers each; of the first 3<sup>7·(2·3<sup>7</sup>&#160;+&#160;1)</sup>&#160;+&#160;1 groups, two must be colored identically.</p>
+<p>Divide each of these two groups into 2·3<sup>7</sup>+1 subgroups of 7 integers each; of the first 3<sup>7</sup>&#160;+&#160;1 subgroups in each group, two of the subgroups must be colored identically. Within each of these identical subgroups, two of the first four integers must be the same color, say red; this implies either a red progression or an element of a different color, say blue, in the same subgroup.</p>
+<p>Since we have two identically-colored subgroups, there is a third subgroup, still in the same group that contains an element which, if either red or blue, would complete a red or blue progression, by a construction analogous to the one for <i>W</i>(2, 3). Suppose that this element is yellow. Since there is a group that is colored identically, it must contain copies of the red, blue, and yellow elements we have identified; we can now find a pair of red elements, a pair of blue elements, and a pair of yellow elements that 'focus' on the same integer, so that whatever color it is, it must complete a progression.</p>
+<p>The proof for <i>W</i>(2, 3) depends essentially on proving that <i>W</i>(32, 2) ≤ 33. We divide the integers {1,...,325} into 65 'blocks', each of which can be colored in 32 different ways, and then show that two blocks of the first 33 must be the same color, and there is a block coloured the opposite way. Similarly, the proof for <i>W</i>(3, 3) depends on proving that</p>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.5" class="ltx_Math" alttext="{\displaystyle W(3^{{7(2\cdot 3^{7}+1)}},2)\leq 3^{{7(2\cdot 3^{7}+1)}}+1.}"  xml:id="math.2459.5.1" xref="math.2459.5.1.cmml">
+  <semantics xml:id="math.2459.5.1a" xref="math.2459.5.1.cmml">
+    <mrow xml:id="math.2459.5.1.14" xref="math.2459.5.1.14.cmml">
+      <mrow xml:id="math.2459.5.1.14.1" xref="math.2459.5.1.14.1.cmml">
+        <mi xml:id="math.2459.5.1.1" xref="math.2459.5.1.1.cmml">W</mi>
+        <mo xml:id="math.2459.5.1.14.1.1" xref="math.2459.5.1.14.1.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.5.1.14.1.2" xref="math.2459.5.1.14.1.2.cmml">
+          <mo xml:id="math.2459.5.1.14.1.2a" xref="math.2459.5.1.14.1.2.cmml">(</mo>
+          <mrow xml:id="math.2459.5.1.14.1.2b" xref="math.2459.5.1.14.1.2.cmml">
+            <msup xml:id="math.2459.5.1.14.1.2.2" xref="math.2459.5.1.14.1.2.2.cmml">
+              <mn xml:id="math.2459.5.1.3" xref="math.2459.5.1.3.cmml">3</mn>
+              <mrow xml:id="math.2459.5.1.4.1" xref="math.2459.5.1.4.1.cmml">
+                <mn xml:id="math.2459.5.1.4.1.1" xref="math.2459.5.1.4.1.1.cmml">7</mn>
+                <mo xml:id="math.2459.5.1.4.1.10" xref="math.2459.5.1.4.1.10.cmml">⁢</mo>
+                <mrow xml:id="math.2459.5.1.4.1.11" xref="math.2459.5.1.4.1.11.cmml">
+                  <mo xml:id="math.2459.5.1.4.1.11a" xref="math.2459.5.1.4.1.11.cmml">(</mo>
+                  <mrow xml:id="math.2459.5.1.4.1.11b" xref="math.2459.5.1.4.1.11.cmml">
+                    <mrow xml:id="math.2459.5.1.4.1.11.1" xref="math.2459.5.1.4.1.11.1.cmml">
+                      <mn xml:id="math.2459.5.1.4.1.3" xref="math.2459.5.1.4.1.3.cmml">2</mn>
+                      <mo xml:id="math.2459.5.1.4.1.4" xref="math.2459.5.1.4.1.4.cmml">⋅</mo>
+                      <msup xml:id="math.2459.5.1.4.1.11.1.1" xref="math.2459.5.1.4.1.11.1.1.cmml">
+                        <mn xml:id="math.2459.5.1.4.1.5" xref="math.2459.5.1.4.1.5.cmml">3</mn>
+                        <mn xml:id="math.2459.5.1.4.1.6.1" xref="math.2459.5.1.4.1.6.1.cmml">7</mn>
+                      </msup>
+                    </mrow>
+                    <mo xml:id="math.2459.5.1.4.1.7" xref="math.2459.5.1.4.1.7.cmml">+</mo>
+                    <mn xml:id="math.2459.5.1.4.1.8" xref="math.2459.5.1.4.1.8.cmml">1</mn>
+                  </mrow>
+                  <mo xml:id="math.2459.5.1.4.1.11c" xref="math.2459.5.1.4.1.11.cmml">)</mo>
+                </mrow>
+              </mrow>
+            </msup>
+            <mo xml:id="math.2459.5.1.14.1.2c" xref="math.2459.5.1.14.1.2.cmml">,</mo>
+            <mn xml:id="math.2459.5.1.6" xref="math.2459.5.1.6.cmml">2</mn>
+          </mrow>
+          <mo xml:id="math.2459.5.1.14.1.2d" xref="math.2459.5.1.14.1.2.cmml">)</mo>
+        </mrow>
+      </mrow>
+      <mo xml:id="math.2459.5.1.8" xref="math.2459.5.1.8.cmml">≤</mo>
+      <mrow xml:id="math.2459.5.1.14.2" xref="math.2459.5.1.14.2.cmml">
+        <msup xml:id="math.2459.5.1.14.2.1" xref="math.2459.5.1.14.2.1.cmml">
+          <mn xml:id="math.2459.5.1.9" xref="math.2459.5.1.9.cmml">3</mn>
+          <mrow xml:id="math.2459.5.1.10.1" xref="math.2459.5.1.10.1.cmml">
+            <mn xml:id="math.2459.5.1.10.1.1" xref="math.2459.5.1.10.1.1.cmml">7</mn>
+            <mo xml:id="math.2459.5.1.10.1.10" xref="math.2459.5.1.10.1.10.cmml">⁢</mo>
+            <mrow xml:id="math.2459.5.1.10.1.11" xref="math.2459.5.1.10.1.11.cmml">
+              <mo xml:id="math.2459.5.1.10.1.11a" xref="math.2459.5.1.10.1.11.cmml">(</mo>
+              <mrow xml:id="math.2459.5.1.10.1.11b" xref="math.2459.5.1.10.1.11.cmml">
+                <mrow xml:id="math.2459.5.1.10.1.11.1" xref="math.2459.5.1.10.1.11.1.cmml">
+                  <mn xml:id="math.2459.5.1.10.1.3" xref="math.2459.5.1.10.1.3.cmml">2</mn>
+                  <mo xml:id="math.2459.5.1.10.1.4" xref="math.2459.5.1.10.1.4.cmml">⋅</mo>
+                  <msup xml:id="math.2459.5.1.10.1.11.1.1" xref="math.2459.5.1.10.1.11.1.1.cmml">
+                    <mn xml:id="math.2459.5.1.10.1.5" xref="math.2459.5.1.10.1.5.cmml">3</mn>
+                    <mn xml:id="math.2459.5.1.10.1.6.1" xref="math.2459.5.1.10.1.6.1.cmml">7</mn>
+                  </msup>
+                </mrow>
+                <mo xml:id="math.2459.5.1.10.1.7" xref="math.2459.5.1.10.1.7.cmml">+</mo>
+                <mn xml:id="math.2459.5.1.10.1.8" xref="math.2459.5.1.10.1.8.cmml">1</mn>
+              </mrow>
+              <mo xml:id="math.2459.5.1.10.1.11c" xref="math.2459.5.1.10.1.11.cmml">)</mo>
+            </mrow>
+          </mrow>
+        </msup>
+        <mo xml:id="math.2459.5.1.11" xref="math.2459.5.1.11.cmml">+</mo>
+        <mn xml:id="math.2459.5.1.13" xref="math.2459.5.1.13.cmml">1.</mn>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.5.1.cmml" xref="math.2459.5.1">
+      <apply xml:id="math.2459.5.1.14.cmml" xref="math.2459.5.1.14">
+        <leq xml:id="math.2459.5.1.8.cmml" xref="math.2459.5.1.8"/>
+        <apply xml:id="math.2459.5.1.14.1.cmml" xref="math.2459.5.1.14.1">
+          <times xml:id="math.2459.5.1.14.1.1.cmml" xref="math.2459.5.1.14.1.1"/>
+          <ci xml:id="math.2459.5.1.1.cmml" xref="math.2459.5.1.1">W</ci>
+          <apply xml:id="math.2459.5.1.14.1.2.cmml" xref="math.2459.5.1.14.1.2">
+            <interval closure="open" xml:id="math.2459.5.1.14.1.2.1.cmml"/>
+            <apply xml:id="math.2459.5.1.14.1.2.2.cmml" xref="math.2459.5.1.14.1.2.2">
+              <csymbol cd="ambiguous" xml:id="math.2459.5.1.14.1.2.2.1.cmml">superscript</csymbol>
+              <cn type="integer" xml:id="math.2459.5.1.3.cmml" xref="math.2459.5.1.3">3</cn>
+              <apply xml:id="math.2459.5.1.4.1.cmml" xref="math.2459.5.1.4.1">
+                <times xml:id="math.2459.5.1.4.1.10.cmml" xref="math.2459.5.1.4.1.10"/>
+                <cn type="integer" xml:id="math.2459.5.1.4.1.1.cmml" xref="math.2459.5.1.4.1.1">7</cn>
+                <apply xml:id="math.2459.5.1.4.1.11.cmml" xref="math.2459.5.1.4.1.11">
+                  <plus xml:id="math.2459.5.1.4.1.7.cmml" xref="math.2459.5.1.4.1.7"/>
+                  <apply xml:id="math.2459.5.1.4.1.11.1.cmml" xref="math.2459.5.1.4.1.11.1">
+                    <ci xml:id="math.2459.5.1.4.1.4.cmml" xref="math.2459.5.1.4.1.4">normal-⋅</ci>
+                    <cn type="integer" xml:id="math.2459.5.1.4.1.3.cmml" xref="math.2459.5.1.4.1.3">2</cn>
+                    <apply xml:id="math.2459.5.1.4.1.11.1.1.cmml" xref="math.2459.5.1.4.1.11.1.1">
+                      <csymbol cd="ambiguous" xml:id="math.2459.5.1.4.1.11.1.1.1.cmml">superscript</csymbol>
+                      <cn type="integer" xml:id="math.2459.5.1.4.1.5.cmml" xref="math.2459.5.1.4.1.5">3</cn>
+                      <cn type="integer" xml:id="math.2459.5.1.4.1.6.1.cmml" xref="math.2459.5.1.4.1.6.1">7</cn>
+                    </apply>
+                  </apply>
+                  <cn type="integer" xml:id="math.2459.5.1.4.1.8.cmml" xref="math.2459.5.1.4.1.8">1</cn>
+                </apply>
+              </apply>
+            </apply>
+            <cn type="integer" xml:id="math.2459.5.1.6.cmml" xref="math.2459.5.1.6">2</cn>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.5.1.14.2.cmml" xref="math.2459.5.1.14.2">
+          <plus xml:id="math.2459.5.1.11.cmml" xref="math.2459.5.1.11"/>
+          <apply xml:id="math.2459.5.1.14.2.1.cmml" xref="math.2459.5.1.14.2.1">
+            <csymbol cd="ambiguous" xml:id="math.2459.5.1.14.2.1.1.cmml">superscript</csymbol>
+            <cn type="integer" xml:id="math.2459.5.1.9.cmml" xref="math.2459.5.1.9">3</cn>
+            <apply xml:id="math.2459.5.1.10.1.cmml" xref="math.2459.5.1.10.1">
+              <times xml:id="math.2459.5.1.10.1.10.cmml" xref="math.2459.5.1.10.1.10"/>
+              <cn type="integer" xml:id="math.2459.5.1.10.1.1.cmml" xref="math.2459.5.1.10.1.1">7</cn>
+              <apply xml:id="math.2459.5.1.10.1.11.cmml" xref="math.2459.5.1.10.1.11">
+                <plus xml:id="math.2459.5.1.10.1.7.cmml" xref="math.2459.5.1.10.1.7"/>
+                <apply xml:id="math.2459.5.1.10.1.11.1.cmml" xref="math.2459.5.1.10.1.11.1">
+                  <ci xml:id="math.2459.5.1.10.1.4.cmml" xref="math.2459.5.1.10.1.4">normal-⋅</ci>
+                  <cn type="integer" xml:id="math.2459.5.1.10.1.3.cmml" xref="math.2459.5.1.10.1.3">2</cn>
+                  <apply xml:id="math.2459.5.1.10.1.11.1.1.cmml" xref="math.2459.5.1.10.1.11.1.1">
+                    <csymbol cd="ambiguous" xml:id="math.2459.5.1.10.1.11.1.1.1.cmml">superscript</csymbol>
+                    <cn type="integer" xml:id="math.2459.5.1.10.1.5.cmml" xref="math.2459.5.1.10.1.5">3</cn>
+                    <cn type="integer" xml:id="math.2459.5.1.10.1.6.1.cmml" xref="math.2459.5.1.10.1.6.1">7</cn>
+                  </apply>
+                </apply>
+                <cn type="integer" xml:id="math.2459.5.1.10.1.8.cmml" xref="math.2459.5.1.10.1.8">1</cn>
+              </apply>
+            </apply>
+          </apply>
+          <cn type="float" xml:id="math.2459.5.1.13.cmml" xref="math.2459.5.1.13">1.</cn>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.5.1b" xref="math.2459.5.1.cmml">{\displaystyle W(3^{{7(2\cdot 3^{7}+1)}},2)\leq 3^{{7(2\cdot 3^{7}+1)}}+1.}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 34ex; height: 5.667ex; vertical-align: -2.333ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=c585113534295df6f9aa4981ef0c7757&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=c585113534295df6f9aa4981ef0c7757&amp;mode=0" /></span></dd>
+</dl>
+<p>By a double <a href="../../../../articles/00629.html" title="Mathematical induction">induction</a> on the number of colors and the length of the progression, the theorem is proved in general.</p>
+<h2><span class="mw-headline" id="Proof">Proof</span></h2>
+<p>A <a href="../../../../articles/10273.html" title="Generalized arithmetic progression"><i>D-dimensional arithmetic progression</i></a> consists of numbers of the form:</p>
+<dl>
+<dd>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.6" class="ltx_Math" alttext="{\displaystyle a+i_{1}s_{1}+i_{2}s_{2}...+i_{D}s_{D}}"  xml:id="math.2459.6.1" xref="math.2459.6.1.cmml">
+  <semantics xml:id="math.2459.6.1a" xref="math.2459.6.1.cmml">
+    <mrow xml:id="math.2459.6.1.20" xref="math.2459.6.1.20.cmml">
+      <mi xml:id="math.2459.6.1.1" xref="math.2459.6.1.1.cmml">a</mi>
+      <mo xml:id="math.2459.6.1.2" xref="math.2459.6.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.6.1.20.1" xref="math.2459.6.1.20.1.cmml">
+        <msub xml:id="math.2459.6.1.20.1.2" xref="math.2459.6.1.20.1.2.cmml">
+          <mi xml:id="math.2459.6.1.3" xref="math.2459.6.1.3.cmml">i</mi>
+          <mn xml:id="math.2459.6.1.4.1" xref="math.2459.6.1.4.1.cmml">1</mn>
+        </msub>
+        <mo xml:id="math.2459.6.1.20.1.1" xref="math.2459.6.1.20.1.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.6.1.20.1.3" xref="math.2459.6.1.20.1.3.cmml">
+          <mi xml:id="math.2459.6.1.5" xref="math.2459.6.1.5.cmml">s</mi>
+          <mn xml:id="math.2459.6.1.6.1" xref="math.2459.6.1.6.1.cmml">1</mn>
+        </msub>
+      </mrow>
+      <mo xml:id="math.2459.6.1.2a" xref="math.2459.6.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.6.1.20.2" xref="math.2459.6.1.20.2.cmml">
+        <msub xml:id="math.2459.6.1.20.2.2" xref="math.2459.6.1.20.2.2.cmml">
+          <mi xml:id="math.2459.6.1.8" xref="math.2459.6.1.8.cmml">i</mi>
+          <mn xml:id="math.2459.6.1.9.1" xref="math.2459.6.1.9.1.cmml">2</mn>
+        </msub>
+        <mo xml:id="math.2459.6.1.20.2.1" xref="math.2459.6.1.20.2.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.6.1.20.2.3" xref="math.2459.6.1.20.2.3.cmml">
+          <mi xml:id="math.2459.6.1.10" xref="math.2459.6.1.10.cmml">s</mi>
+          <mn xml:id="math.2459.6.1.11.1" xref="math.2459.6.1.11.1.cmml">2</mn>
+        </msub>
+        <mo xml:id="math.2459.6.1.20.2.1a" xref="math.2459.6.1.20.2.1.cmml">⁢</mo>
+        <mi mathvariant="normal" xml:id="math.2459.6.1.14" xref="math.2459.6.1.14.cmml">…</mi>
+      </mrow>
+      <mo xml:id="math.2459.6.1.2b" xref="math.2459.6.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.6.1.20.3" xref="math.2459.6.1.20.3.cmml">
+        <msub xml:id="math.2459.6.1.20.3.2" xref="math.2459.6.1.20.3.2.cmml">
+          <mi xml:id="math.2459.6.1.16" xref="math.2459.6.1.16.cmml">i</mi>
+          <mi xml:id="math.2459.6.1.17.1" xref="math.2459.6.1.17.1.cmml">D</mi>
+        </msub>
+        <mo xml:id="math.2459.6.1.20.3.1" xref="math.2459.6.1.20.3.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.6.1.20.3.3" xref="math.2459.6.1.20.3.3.cmml">
+          <mi xml:id="math.2459.6.1.18" xref="math.2459.6.1.18.cmml">s</mi>
+          <mi xml:id="math.2459.6.1.19.1" xref="math.2459.6.1.19.1.cmml">D</mi>
+        </msub>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.6.1.cmml" xref="math.2459.6.1">
+      <apply xml:id="math.2459.6.1.20.cmml" xref="math.2459.6.1.20">
+        <plus xml:id="math.2459.6.1.2.cmml" xref="math.2459.6.1.2"/>
+        <ci xml:id="math.2459.6.1.1.cmml" xref="math.2459.6.1.1">a</ci>
+        <apply xml:id="math.2459.6.1.20.1.cmml" xref="math.2459.6.1.20.1">
+          <times xml:id="math.2459.6.1.20.1.1.cmml" xref="math.2459.6.1.20.1.1"/>
+          <apply xml:id="math.2459.6.1.20.1.2.cmml" xref="math.2459.6.1.20.1.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.6.1.20.1.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.6.1.3.cmml" xref="math.2459.6.1.3">i</ci>
+            <cn type="integer" xml:id="math.2459.6.1.4.1.cmml" xref="math.2459.6.1.4.1">1</cn>
+          </apply>
+          <apply xml:id="math.2459.6.1.20.1.3.cmml" xref="math.2459.6.1.20.1.3">
+            <csymbol cd="ambiguous" xml:id="math.2459.6.1.20.1.3.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.6.1.5.cmml" xref="math.2459.6.1.5">s</ci>
+            <cn type="integer" xml:id="math.2459.6.1.6.1.cmml" xref="math.2459.6.1.6.1">1</cn>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.6.1.20.2.cmml" xref="math.2459.6.1.20.2">
+          <times xml:id="math.2459.6.1.20.2.1.cmml" xref="math.2459.6.1.20.2.1"/>
+          <apply xml:id="math.2459.6.1.20.2.2.cmml" xref="math.2459.6.1.20.2.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.6.1.20.2.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.6.1.8.cmml" xref="math.2459.6.1.8">i</ci>
+            <cn type="integer" xml:id="math.2459.6.1.9.1.cmml" xref="math.2459.6.1.9.1">2</cn>
+          </apply>
+          <apply xml:id="math.2459.6.1.20.2.3.cmml" xref="math.2459.6.1.20.2.3">
+            <csymbol cd="ambiguous" xml:id="math.2459.6.1.20.2.3.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.6.1.10.cmml" xref="math.2459.6.1.10">s</ci>
+            <cn type="integer" xml:id="math.2459.6.1.11.1.cmml" xref="math.2459.6.1.11.1">2</cn>
+          </apply>
+          <ci xml:id="math.2459.6.1.14.cmml" xref="math.2459.6.1.14">normal-…</ci>
+        </apply>
+        <apply xml:id="math.2459.6.1.20.3.cmml" xref="math.2459.6.1.20.3">
+          <times xml:id="math.2459.6.1.20.3.1.cmml" xref="math.2459.6.1.20.3.1"/>
+          <apply xml:id="math.2459.6.1.20.3.2.cmml" xref="math.2459.6.1.20.3.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.6.1.20.3.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.6.1.16.cmml" xref="math.2459.6.1.16">i</ci>
+            <ci xml:id="math.2459.6.1.17.1.cmml" xref="math.2459.6.1.17.1">D</ci>
+          </apply>
+          <apply xml:id="math.2459.6.1.20.3.3.cmml" xref="math.2459.6.1.20.3.3">
+            <csymbol cd="ambiguous" xml:id="math.2459.6.1.20.3.3.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.6.1.18.cmml" xref="math.2459.6.1.18">s</ci>
+            <ci xml:id="math.2459.6.1.19.1.cmml" xref="math.2459.6.1.19.1">D</ci>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.6.1b" xref="math.2459.6.1.cmml">{\displaystyle a+i_{1}s_{1}+i_{2}s_{2}...+i_{D}s_{D}}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=198701fba05e8da12dcb0c95963e6882&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=198701fba05e8da12dcb0c95963e6882&amp;mode=0" /></span></dd>
+</dl>
+</dd>
+</dl>
+<p>where a is the basepoint, the s's are the different step-sizes, and the i's range from 0 to L-1. A d-dimensional AP is <i>homogenous</i> for some coloring when it is all the same color.</p>
+<p>A <i>D-dimensional arithmetic progression with benefits</i> is all numbers of the form above, but where you add on some of the "boundary" of the arithmetic progression, i.e. some of the indices i's can be equal to L. The sides you tack on are ones where the first k i's are equal to L, and the remaining i's are less than L.</p>
+<p>The boundaries of a D-dimensional AP with benefits are these additional arithmetic progressions of dimension d-1,d-2,d-3,d-4, down to 0. The 0 dimensional arithmetic progression is the single point at index value (L,L,L,L...,L). A D-dimensional AP with benefits is <i>homogenous</i> when each of the boundaries are individually homogenous, but different boundaries do not have to necessarily have the same color.</p>
+<p>Next define the quantity MinN(L, D, N) to be the least integer so that any assignment of N colors to an interval of length MinN or more necessarily contains a homogenous D-dimensional arithmetical progression with benefits.</p>
+<p>The goal is to bound the size of MinN. Note that MinN(L,1,N) is an upper bound for Van-Der-Waerden's number. There are two inductions steps, as follows:</p>
+<p>1. Assume MinN is known for a given lengths L for all dimensions of arithmetic progressions with benefits up to D. This formula gives a bound on MinN when you increase the dimension to D+1:</p>
+<p>let <span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.7" class="ltx_Math" alttext="{\displaystyle M={{\mathrm{M}}inN}(L,D,n)}"  xml:id="math.2459.7.1" xref="math.2459.7.1.cmml">
+  <semantics xml:id="math.2459.7.1a" xref="math.2459.7.1.cmml">
+    <mrow xml:id="math.2459.7.1.14" xref="math.2459.7.1.14.cmml">
+      <mi xml:id="math.2459.7.1.1" xref="math.2459.7.1.1.cmml">M</mi>
+      <mo xml:id="math.2459.7.1.2" xref="math.2459.7.1.2.cmml">=</mo>
+      <mrow xml:id="math.2459.7.1.14.1" xref="math.2459.7.1.14.1.cmml">
+        <mi mathvariant="normal" xml:id="math.2459.7.1.3" xref="math.2459.7.1.3.cmml">M</mi>
+        <mo xml:id="math.2459.7.1.14.1.1" xref="math.2459.7.1.14.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.7.1.4" xref="math.2459.7.1.4.cmml">i</mi>
+        <mo xml:id="math.2459.7.1.14.1.1a" xref="math.2459.7.1.14.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.7.1.5" xref="math.2459.7.1.5.cmml">n</mi>
+        <mo xml:id="math.2459.7.1.14.1.1b" xref="math.2459.7.1.14.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.7.1.6" xref="math.2459.7.1.6.cmml">N</mi>
+        <mo xml:id="math.2459.7.1.14.1.1c" xref="math.2459.7.1.14.1.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.7.1.14.1.2" xref="math.2459.7.1.14.1.2.cmml">
+          <mo xml:id="math.2459.7.1.14.1.2a" xref="math.2459.7.1.14.1.2.cmml">(</mo>
+          <mrow xml:id="math.2459.7.1.14.1.2b" xref="math.2459.7.1.14.1.2.cmml">
+            <mi xml:id="math.2459.7.1.8" xref="math.2459.7.1.8.cmml">L</mi>
+            <mo xml:id="math.2459.7.1.14.1.2c" xref="math.2459.7.1.14.1.2.cmml">,</mo>
+            <mi xml:id="math.2459.7.1.10" xref="math.2459.7.1.10.cmml">D</mi>
+            <mo xml:id="math.2459.7.1.14.1.2d" xref="math.2459.7.1.14.1.2.cmml">,</mo>
+            <mi xml:id="math.2459.7.1.12" xref="math.2459.7.1.12.cmml">n</mi>
+          </mrow>
+          <mo xml:id="math.2459.7.1.14.1.2e" xref="math.2459.7.1.14.1.2.cmml">)</mo>
+        </mrow>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.7.1.cmml" xref="math.2459.7.1">
+      <apply xml:id="math.2459.7.1.14.cmml" xref="math.2459.7.1.14">
+        <eq xml:id="math.2459.7.1.2.cmml" xref="math.2459.7.1.2"/>
+        <ci xml:id="math.2459.7.1.1.cmml" xref="math.2459.7.1.1">M</ci>
+        <apply xml:id="math.2459.7.1.14.1.cmml" xref="math.2459.7.1.14.1">
+          <times xml:id="math.2459.7.1.14.1.1.cmml" xref="math.2459.7.1.14.1.1"/>
+          <ci xml:id="math.2459.7.1.3.cmml" xref="math.2459.7.1.3">normal-M</ci>
+          <ci xml:id="math.2459.7.1.4.cmml" xref="math.2459.7.1.4">i</ci>
+          <ci xml:id="math.2459.7.1.5.cmml" xref="math.2459.7.1.5">n</ci>
+          <ci xml:id="math.2459.7.1.6.cmml" xref="math.2459.7.1.6">N</ci>
+          <apply xml:id="math.2459.7.1.14.1.2.cmml" xref="math.2459.7.1.14.1.2">
+            <vector xml:id="math.2459.7.1.14.1.2.1.cmml"/>
+            <ci xml:id="math.2459.7.1.8.cmml" xref="math.2459.7.1.8">L</ci>
+            <ci xml:id="math.2459.7.1.10.cmml" xref="math.2459.7.1.10">D</ci>
+            <ci xml:id="math.2459.7.1.12.cmml" xref="math.2459.7.1.12">n</ci>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.7.1b" xref="math.2459.7.1.cmml">{\displaystyle M={{\mathrm{M}}inN}(L,D,n)}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 20.889ex; height: 2.444ex; vertical-align: -0.778ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=129f008829c016637ce5cd30dbc975f3&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=129f008829c016637ce5cd30dbc975f3&amp;mode=0" /></span></p>
+<dl>
+<dd>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.8" class="ltx_Math" alttext="{\displaystyle{{\mathrm{M}}inN}(L,D+1,n)\leq M*{{\mathrm{M}}inN}(L,1,n^{M})}"  xml:id="math.2459.8.1" xref="math.2459.8.1.cmml">
+  <semantics xml:id="math.2459.8.1a" xref="math.2459.8.1.cmml">
+    <mrow xml:id="math.2459.8.1.29" xref="math.2459.8.1.29.cmml">
+      <mrow xml:id="math.2459.8.1.29.1" xref="math.2459.8.1.29.1.cmml">
+        <mi mathvariant="normal" xml:id="math.2459.8.1.1" xref="math.2459.8.1.1.cmml">M</mi>
+        <mo xml:id="math.2459.8.1.29.1.1" xref="math.2459.8.1.29.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.8.1.2" xref="math.2459.8.1.2.cmml">i</mi>
+        <mo xml:id="math.2459.8.1.29.1.1a" xref="math.2459.8.1.29.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.8.1.3" xref="math.2459.8.1.3.cmml">n</mi>
+        <mo xml:id="math.2459.8.1.29.1.1b" xref="math.2459.8.1.29.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.8.1.4" xref="math.2459.8.1.4.cmml">N</mi>
+        <mo xml:id="math.2459.8.1.29.1.1c" xref="math.2459.8.1.29.1.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.8.1.29.1.2" xref="math.2459.8.1.29.1.2.cmml">
+          <mo xml:id="math.2459.8.1.29.1.2a" xref="math.2459.8.1.29.1.2.cmml">(</mo>
+          <mrow xml:id="math.2459.8.1.29.1.2b" xref="math.2459.8.1.29.1.2.cmml">
+            <mi xml:id="math.2459.8.1.6" xref="math.2459.8.1.6.cmml">L</mi>
+            <mo xml:id="math.2459.8.1.29.1.2c" xref="math.2459.8.1.29.1.2.cmml">,</mo>
+            <mrow xml:id="math.2459.8.1.29.1.2.2" xref="math.2459.8.1.29.1.2.2.cmml">
+              <mi xml:id="math.2459.8.1.8" xref="math.2459.8.1.8.cmml">D</mi>
+              <mo xml:id="math.2459.8.1.9" xref="math.2459.8.1.9.cmml">+</mo>
+              <mn xml:id="math.2459.8.1.10" xref="math.2459.8.1.10.cmml">1</mn>
+            </mrow>
+            <mo xml:id="math.2459.8.1.29.1.2d" xref="math.2459.8.1.29.1.2.cmml">,</mo>
+            <mi xml:id="math.2459.8.1.12" xref="math.2459.8.1.12.cmml">n</mi>
+          </mrow>
+          <mo xml:id="math.2459.8.1.29.1.2e" xref="math.2459.8.1.29.1.2.cmml">)</mo>
+        </mrow>
+      </mrow>
+      <mo xml:id="math.2459.8.1.14" xref="math.2459.8.1.14.cmml">≤</mo>
+      <mrow xml:id="math.2459.8.1.29.2" xref="math.2459.8.1.29.2.cmml">
+        <mrow xml:id="math.2459.8.1.29.2.2" xref="math.2459.8.1.29.2.2.cmml">
+          <mi xml:id="math.2459.8.1.15" xref="math.2459.8.1.15.cmml">M</mi>
+          <mo xml:id="math.2459.8.1.16" xref="math.2459.8.1.16.cmml">*</mo>
+          <mi mathvariant="normal" xml:id="math.2459.8.1.17" xref="math.2459.8.1.17.cmml">M</mi>
+        </mrow>
+        <mo xml:id="math.2459.8.1.29.2.1" xref="math.2459.8.1.29.2.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.8.1.18" xref="math.2459.8.1.18.cmml">i</mi>
+        <mo xml:id="math.2459.8.1.29.2.1a" xref="math.2459.8.1.29.2.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.8.1.19" xref="math.2459.8.1.19.cmml">n</mi>
+        <mo xml:id="math.2459.8.1.29.2.1b" xref="math.2459.8.1.29.2.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.8.1.20" xref="math.2459.8.1.20.cmml">N</mi>
+        <mo xml:id="math.2459.8.1.29.2.1c" xref="math.2459.8.1.29.2.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.8.1.29.2.3" xref="math.2459.8.1.29.2.3.cmml">
+          <mo xml:id="math.2459.8.1.29.2.3a" xref="math.2459.8.1.29.2.3.cmml">(</mo>
+          <mrow xml:id="math.2459.8.1.29.2.3b" xref="math.2459.8.1.29.2.3.cmml">
+            <mi xml:id="math.2459.8.1.22" xref="math.2459.8.1.22.cmml">L</mi>
+            <mo xml:id="math.2459.8.1.29.2.3c" xref="math.2459.8.1.29.2.3.cmml">,</mo>
+            <mn xml:id="math.2459.8.1.24" xref="math.2459.8.1.24.cmml">1</mn>
+            <mo xml:id="math.2459.8.1.29.2.3d" xref="math.2459.8.1.29.2.3.cmml">,</mo>
+            <msup xml:id="math.2459.8.1.29.2.3.2" xref="math.2459.8.1.29.2.3.2.cmml">
+              <mi xml:id="math.2459.8.1.26" xref="math.2459.8.1.26.cmml">n</mi>
+              <mi xml:id="math.2459.8.1.27.1" xref="math.2459.8.1.27.1.cmml">M</mi>
+            </msup>
+          </mrow>
+          <mo xml:id="math.2459.8.1.29.2.3e" xref="math.2459.8.1.29.2.3.cmml">)</mo>
+        </mrow>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.8.1.cmml" xref="math.2459.8.1">
+      <apply xml:id="math.2459.8.1.29.cmml" xref="math.2459.8.1.29">
+        <leq xml:id="math.2459.8.1.14.cmml" xref="math.2459.8.1.14"/>
+        <apply xml:id="math.2459.8.1.29.1.cmml" xref="math.2459.8.1.29.1">
+          <times xml:id="math.2459.8.1.29.1.1.cmml" xref="math.2459.8.1.29.1.1"/>
+          <ci xml:id="math.2459.8.1.1.cmml" xref="math.2459.8.1.1">normal-M</ci>
+          <ci xml:id="math.2459.8.1.2.cmml" xref="math.2459.8.1.2">i</ci>
+          <ci xml:id="math.2459.8.1.3.cmml" xref="math.2459.8.1.3">n</ci>
+          <ci xml:id="math.2459.8.1.4.cmml" xref="math.2459.8.1.4">N</ci>
+          <apply xml:id="math.2459.8.1.29.1.2.cmml" xref="math.2459.8.1.29.1.2">
+            <vector xml:id="math.2459.8.1.29.1.2.1.cmml"/>
+            <ci xml:id="math.2459.8.1.6.cmml" xref="math.2459.8.1.6">L</ci>
+            <apply xml:id="math.2459.8.1.29.1.2.2.cmml" xref="math.2459.8.1.29.1.2.2">
+              <plus xml:id="math.2459.8.1.9.cmml" xref="math.2459.8.1.9"/>
+              <ci xml:id="math.2459.8.1.8.cmml" xref="math.2459.8.1.8">D</ci>
+              <cn type="integer" xml:id="math.2459.8.1.10.cmml" xref="math.2459.8.1.10">1</cn>
+            </apply>
+            <ci xml:id="math.2459.8.1.12.cmml" xref="math.2459.8.1.12">n</ci>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.8.1.29.2.cmml" xref="math.2459.8.1.29.2">
+          <times xml:id="math.2459.8.1.29.2.1.cmml" xref="math.2459.8.1.29.2.1"/>
+          <apply xml:id="math.2459.8.1.29.2.2.cmml" xref="math.2459.8.1.29.2.2">
+            <times xml:id="math.2459.8.1.16.cmml" xref="math.2459.8.1.16"/>
+            <ci xml:id="math.2459.8.1.15.cmml" xref="math.2459.8.1.15">M</ci>
+            <ci xml:id="math.2459.8.1.17.cmml" xref="math.2459.8.1.17">normal-M</ci>
+          </apply>
+          <ci xml:id="math.2459.8.1.18.cmml" xref="math.2459.8.1.18">i</ci>
+          <ci xml:id="math.2459.8.1.19.cmml" xref="math.2459.8.1.19">n</ci>
+          <ci xml:id="math.2459.8.1.20.cmml" xref="math.2459.8.1.20">N</ci>
+          <apply xml:id="math.2459.8.1.29.2.3.cmml" xref="math.2459.8.1.29.2.3">
+            <vector xml:id="math.2459.8.1.29.2.3.1.cmml"/>
+            <ci xml:id="math.2459.8.1.22.cmml" xref="math.2459.8.1.22">L</ci>
+            <cn type="integer" xml:id="math.2459.8.1.24.cmml" xref="math.2459.8.1.24">1</cn>
+            <apply xml:id="math.2459.8.1.29.2.3.2.cmml" xref="math.2459.8.1.29.2.3.2">
+              <csymbol cd="ambiguous" xml:id="math.2459.8.1.29.2.3.2.1.cmml">superscript</csymbol>
+              <ci xml:id="math.2459.8.1.26.cmml" xref="math.2459.8.1.26">n</ci>
+              <ci xml:id="math.2459.8.1.27.1.cmml" xref="math.2459.8.1.27.1">M</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.8.1b" xref="math.2459.8.1.cmml">{\displaystyle{{\mathrm{M}}inN}(L,D+1,n)\leq M*{{\mathrm{M}}inN}(L,1,n^{M})}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=42587df18003ea4f059f7cc38aebabe0&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=42587df18003ea4f059f7cc38aebabe0&amp;mode=0" /></span></dd>
+</dl>
+</dd>
+</dl>
+<p>Proof: First, if you have an n-coloring of the interval 1...I, you can define a <i>block coloring</i> of k-size blocks. Just consider each sequence of k colors in each k block to define a unique color. Call this <i>k-blocking</i> an n-coloring. k-blocking an n coloring of length l produces an n^k coloring of length l/k.</p>
+<p>So given a n-coloring of an interval I of size M*MinN(L,1,n^M)) you can M-block it into an n^M coloring of length MinN(L,1,n^M). But that means, by the definition of MinN, that you can find a 1-dimensional arithmetic sequence (with benefits) of length L in the block coloring, which is a sequence of blocks equally spaced, which are all the same block-color, i.e. you have a bunch of blocks of length M in the original sequence, which are equally spaced, which have exactly the same sequence of colors inside.</p>
+<p>Now, by the definition of M, you can find a d-dimensional arithmetic sequence with benefits in any one of these blocks, and since all of the blocks have the same sequence of colors, the same d-dimensional AP with benefits appears in all of the blocks, just by translating it from block to block. This is the definition of a d+1 dimensional arithmetic progression, so you have a homogenous d+1 dimensional AP. The new stride parameter s_{D+1} is defined to be the distance between the blocks.</p>
+<p>But you need benefits. The boundaries you get now are all old boundaries, plus their translations into identically colored blocks, because i_{D+1} is always less than L. The only boundary which is not like this is the 0 dimensional point when <span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.9" class="ltx_Math" alttext="{\displaystyle i_{1}=i_{2}=...=i_{{D+1}}=L}"  xml:id="math.2459.9.1" xref="math.2459.9.1.cmml">
+  <semantics xml:id="math.2459.9.1a" xref="math.2459.9.1.cmml">
+    <mrow xml:id="math.2459.9.1.15" xref="math.2459.9.1.15.cmml">
+      <msub xml:id="math.2459.9.1.15.2" xref="math.2459.9.1.15.2.cmml">
+        <mi xml:id="math.2459.9.1.1" xref="math.2459.9.1.1.cmml">i</mi>
+        <mn xml:id="math.2459.9.1.2.1" xref="math.2459.9.1.2.1.cmml">1</mn>
+      </msub>
+      <mo xml:id="math.2459.9.1.3" xref="math.2459.9.1.3.cmml">=</mo>
+      <msub xml:id="math.2459.9.1.15.3" xref="math.2459.9.1.15.3.cmml">
+        <mi xml:id="math.2459.9.1.4" xref="math.2459.9.1.4.cmml">i</mi>
+        <mn xml:id="math.2459.9.1.5.1" xref="math.2459.9.1.5.1.cmml">2</mn>
+      </msub>
+      <mo xml:id="math.2459.9.1.6" xref="math.2459.9.1.6.cmml">=</mo>
+      <mi mathvariant="normal" xml:id="math.2459.9.1.9" xref="math.2459.9.1.9.cmml">…</mi>
+      <mo xml:id="math.2459.9.1.10" xref="math.2459.9.1.10.cmml">=</mo>
+      <msub xml:id="math.2459.9.1.15.4" xref="math.2459.9.1.15.4.cmml">
+        <mi xml:id="math.2459.9.1.11" xref="math.2459.9.1.11.cmml">i</mi>
+        <mrow xml:id="math.2459.9.1.12.1" xref="math.2459.9.1.12.1.cmml">
+          <mi xml:id="math.2459.9.1.12.1.1" xref="math.2459.9.1.12.1.1.cmml">D</mi>
+          <mo xml:id="math.2459.9.1.12.1.2" xref="math.2459.9.1.12.1.2.cmml">+</mo>
+          <mn xml:id="math.2459.9.1.12.1.3" xref="math.2459.9.1.12.1.3.cmml">1</mn>
+        </mrow>
+      </msub>
+      <mo xml:id="math.2459.9.1.13" xref="math.2459.9.1.13.cmml">=</mo>
+      <mi xml:id="math.2459.9.1.14" xref="math.2459.9.1.14.cmml">L</mi>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.9.1.cmml" xref="math.2459.9.1">
+      <apply xml:id="math.2459.9.1.15.cmml" xref="math.2459.9.1.15">
+        <and xml:id="math.2459.9.1.15a.cmml" xref="math.2459.9.1.15"/>
+        <apply xml:id="math.2459.9.1.15b.cmml" xref="math.2459.9.1.15">
+          <eq xml:id="math.2459.9.1.3.cmml" xref="math.2459.9.1.3"/>
+          <apply xml:id="math.2459.9.1.15.2.cmml" xref="math.2459.9.1.15.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.9.1.15.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.9.1.1.cmml" xref="math.2459.9.1.1">i</ci>
+            <cn type="integer" xml:id="math.2459.9.1.2.1.cmml" xref="math.2459.9.1.2.1">1</cn>
+          </apply>
+          <apply xml:id="math.2459.9.1.15.3.cmml" xref="math.2459.9.1.15.3">
+            <csymbol cd="ambiguous" xml:id="math.2459.9.1.15.3.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.9.1.4.cmml" xref="math.2459.9.1.4">i</ci>
+            <cn type="integer" xml:id="math.2459.9.1.5.1.cmml" xref="math.2459.9.1.5.1">2</cn>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.9.1.15c.cmml" xref="math.2459.9.1.15">
+          <eq xml:id="math.2459.9.1.6.cmml" xref="math.2459.9.1.6"/>
+          <share href="#math.2459.9.1.15.3.cmml" xml:id="math.2459.9.1.15d.cmml" xref="math.2459.9.1.15"/>
+          <ci xml:id="math.2459.9.1.9.cmml" xref="math.2459.9.1.9">normal-…</ci>
+        </apply>
+        <apply xml:id="math.2459.9.1.15e.cmml" xref="math.2459.9.1.15">
+          <eq xml:id="math.2459.9.1.10.cmml" xref="math.2459.9.1.10"/>
+          <share href="#math.2459.9.1.9.cmml" xml:id="math.2459.9.1.15f.cmml" xref="math.2459.9.1.15"/>
+          <apply xml:id="math.2459.9.1.15.4.cmml" xref="math.2459.9.1.15.4">
+            <csymbol cd="ambiguous" xml:id="math.2459.9.1.15.4.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.9.1.11.cmml" xref="math.2459.9.1.11">i</ci>
+            <apply xml:id="math.2459.9.1.12.1.cmml" xref="math.2459.9.1.12.1">
+              <plus xml:id="math.2459.9.1.12.1.2.cmml" xref="math.2459.9.1.12.1.2"/>
+              <ci xml:id="math.2459.9.1.12.1.1.cmml" xref="math.2459.9.1.12.1.1">D</ci>
+              <cn type="integer" xml:id="math.2459.9.1.12.1.3.cmml" xref="math.2459.9.1.12.1.3">1</cn>
+            </apply>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.9.1.15g.cmml" xref="math.2459.9.1.15">
+          <eq xml:id="math.2459.9.1.13.cmml" xref="math.2459.9.1.13"/>
+          <share href="#math.2459.9.1.15.4.cmml" xml:id="math.2459.9.1.15h.cmml" xref="math.2459.9.1.15"/>
+          <ci xml:id="math.2459.9.1.14.cmml" xref="math.2459.9.1.14">L</ci>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.9.1b" xref="math.2459.9.1.cmml">{\displaystyle i_{1}=i_{2}=...=i_{{D+1}}=L}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=ca2f444aa83a51bf73a2d4e968f68a50&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=ca2f444aa83a51bf73a2d4e968f68a50&amp;mode=0" /></span> . This is a single point, and is automatically homogenous.</p>
+<p>2. Assume MinN is known for one value of L and all possible dimensions D. Then you can bound MinN for length L+1.</p>
+<dl>
+<dd>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.10" class="ltx_Math" alttext="{\displaystyle{{\mathrm{M}}inN}(L+1,D,n)\leq 2{{\mathrm{M}}inN}(L,n,n)}"  xml:id="math.2459.10.1" xref="math.2459.10.1.cmml">
+  <semantics xml:id="math.2459.10.1a" xref="math.2459.10.1.cmml">
+    <mrow xml:id="math.2459.10.1.27" xref="math.2459.10.1.27.cmml">
+      <mrow xml:id="math.2459.10.1.27.1" xref="math.2459.10.1.27.1.cmml">
+        <mi mathvariant="normal" xml:id="math.2459.10.1.1" xref="math.2459.10.1.1.cmml">M</mi>
+        <mo xml:id="math.2459.10.1.27.1.1" xref="math.2459.10.1.27.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.10.1.2" xref="math.2459.10.1.2.cmml">i</mi>
+        <mo xml:id="math.2459.10.1.27.1.1a" xref="math.2459.10.1.27.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.10.1.3" xref="math.2459.10.1.3.cmml">n</mi>
+        <mo xml:id="math.2459.10.1.27.1.1b" xref="math.2459.10.1.27.1.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.10.1.4" xref="math.2459.10.1.4.cmml">N</mi>
+        <mo xml:id="math.2459.10.1.27.1.1c" xref="math.2459.10.1.27.1.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.10.1.27.1.2" xref="math.2459.10.1.27.1.2.cmml">
+          <mo xml:id="math.2459.10.1.27.1.2a" xref="math.2459.10.1.27.1.2.cmml">(</mo>
+          <mrow xml:id="math.2459.10.1.27.1.2b" xref="math.2459.10.1.27.1.2.cmml">
+            <mrow xml:id="math.2459.10.1.27.1.2.2" xref="math.2459.10.1.27.1.2.2.cmml">
+              <mi xml:id="math.2459.10.1.6" xref="math.2459.10.1.6.cmml">L</mi>
+              <mo xml:id="math.2459.10.1.7" xref="math.2459.10.1.7.cmml">+</mo>
+              <mn xml:id="math.2459.10.1.8" xref="math.2459.10.1.8.cmml">1</mn>
+            </mrow>
+            <mo xml:id="math.2459.10.1.27.1.2c" xref="math.2459.10.1.27.1.2.cmml">,</mo>
+            <mi xml:id="math.2459.10.1.10" xref="math.2459.10.1.10.cmml">D</mi>
+            <mo xml:id="math.2459.10.1.27.1.2d" xref="math.2459.10.1.27.1.2.cmml">,</mo>
+            <mi xml:id="math.2459.10.1.12" xref="math.2459.10.1.12.cmml">n</mi>
+          </mrow>
+          <mo xml:id="math.2459.10.1.27.1.2e" xref="math.2459.10.1.27.1.2.cmml">)</mo>
+        </mrow>
+      </mrow>
+      <mo xml:id="math.2459.10.1.14" xref="math.2459.10.1.14.cmml">≤</mo>
+      <mrow xml:id="math.2459.10.1.27.2" xref="math.2459.10.1.27.2.cmml">
+        <mn xml:id="math.2459.10.1.15" xref="math.2459.10.1.15.cmml">2</mn>
+        <mo xml:id="math.2459.10.1.27.2.1" xref="math.2459.10.1.27.2.1.cmml">⁢</mo>
+        <mi mathvariant="normal" xml:id="math.2459.10.1.16" xref="math.2459.10.1.16.cmml">M</mi>
+        <mo xml:id="math.2459.10.1.27.2.1a" xref="math.2459.10.1.27.2.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.10.1.17" xref="math.2459.10.1.17.cmml">i</mi>
+        <mo xml:id="math.2459.10.1.27.2.1b" xref="math.2459.10.1.27.2.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.10.1.18" xref="math.2459.10.1.18.cmml">n</mi>
+        <mo xml:id="math.2459.10.1.27.2.1c" xref="math.2459.10.1.27.2.1.cmml">⁢</mo>
+        <mi xml:id="math.2459.10.1.19" xref="math.2459.10.1.19.cmml">N</mi>
+        <mo xml:id="math.2459.10.1.27.2.1d" xref="math.2459.10.1.27.2.1.cmml">⁢</mo>
+        <mrow xml:id="math.2459.10.1.27.2.2" xref="math.2459.10.1.27.2.2.cmml">
+          <mo xml:id="math.2459.10.1.27.2.2a" xref="math.2459.10.1.27.2.2.cmml">(</mo>
+          <mrow xml:id="math.2459.10.1.27.2.2b" xref="math.2459.10.1.27.2.2.cmml">
+            <mi xml:id="math.2459.10.1.21" xref="math.2459.10.1.21.cmml">L</mi>
+            <mo xml:id="math.2459.10.1.27.2.2c" xref="math.2459.10.1.27.2.2.cmml">,</mo>
+            <mi xml:id="math.2459.10.1.23" xref="math.2459.10.1.23.cmml">n</mi>
+            <mo xml:id="math.2459.10.1.27.2.2d" xref="math.2459.10.1.27.2.2.cmml">,</mo>
+            <mi xml:id="math.2459.10.1.25" xref="math.2459.10.1.25.cmml">n</mi>
+          </mrow>
+          <mo xml:id="math.2459.10.1.27.2.2e" xref="math.2459.10.1.27.2.2.cmml">)</mo>
+        </mrow>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.10.1.cmml" xref="math.2459.10.1">
+      <apply xml:id="math.2459.10.1.27.cmml" xref="math.2459.10.1.27">
+        <leq xml:id="math.2459.10.1.14.cmml" xref="math.2459.10.1.14"/>
+        <apply xml:id="math.2459.10.1.27.1.cmml" xref="math.2459.10.1.27.1">
+          <times xml:id="math.2459.10.1.27.1.1.cmml" xref="math.2459.10.1.27.1.1"/>
+          <ci xml:id="math.2459.10.1.1.cmml" xref="math.2459.10.1.1">normal-M</ci>
+          <ci xml:id="math.2459.10.1.2.cmml" xref="math.2459.10.1.2">i</ci>
+          <ci xml:id="math.2459.10.1.3.cmml" xref="math.2459.10.1.3">n</ci>
+          <ci xml:id="math.2459.10.1.4.cmml" xref="math.2459.10.1.4">N</ci>
+          <apply xml:id="math.2459.10.1.27.1.2.cmml" xref="math.2459.10.1.27.1.2">
+            <vector xml:id="math.2459.10.1.27.1.2.1.cmml"/>
+            <apply xml:id="math.2459.10.1.27.1.2.2.cmml" xref="math.2459.10.1.27.1.2.2">
+              <plus xml:id="math.2459.10.1.7.cmml" xref="math.2459.10.1.7"/>
+              <ci xml:id="math.2459.10.1.6.cmml" xref="math.2459.10.1.6">L</ci>
+              <cn type="integer" xml:id="math.2459.10.1.8.cmml" xref="math.2459.10.1.8">1</cn>
+            </apply>
+            <ci xml:id="math.2459.10.1.10.cmml" xref="math.2459.10.1.10">D</ci>
+            <ci xml:id="math.2459.10.1.12.cmml" xref="math.2459.10.1.12">n</ci>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.10.1.27.2.cmml" xref="math.2459.10.1.27.2">
+          <times xml:id="math.2459.10.1.27.2.1.cmml" xref="math.2459.10.1.27.2.1"/>
+          <cn type="integer" xml:id="math.2459.10.1.15.cmml" xref="math.2459.10.1.15">2</cn>
+          <ci xml:id="math.2459.10.1.16.cmml" xref="math.2459.10.1.16">normal-M</ci>
+          <ci xml:id="math.2459.10.1.17.cmml" xref="math.2459.10.1.17">i</ci>
+          <ci xml:id="math.2459.10.1.18.cmml" xref="math.2459.10.1.18">n</ci>
+          <ci xml:id="math.2459.10.1.19.cmml" xref="math.2459.10.1.19">N</ci>
+          <apply xml:id="math.2459.10.1.27.2.2.cmml" xref="math.2459.10.1.27.2.2">
+            <vector xml:id="math.2459.10.1.27.2.2.1.cmml"/>
+            <ci xml:id="math.2459.10.1.21.cmml" xref="math.2459.10.1.21">L</ci>
+            <ci xml:id="math.2459.10.1.23.cmml" xref="math.2459.10.1.23">n</ci>
+            <ci xml:id="math.2459.10.1.25.cmml" xref="math.2459.10.1.25">n</ci>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.10.1b" xref="math.2459.10.1.cmml">{\displaystyle{{\mathrm{M}}inN}(L+1,D,n)\leq 2{{\mathrm{M}}inN}(L,n,n)}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 38.333ex; height: 2.444ex; vertical-align: -0.778ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=02910523462ad6edcc3f5a16357bded9&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=02910523462ad6edcc3f5a16357bded9&amp;mode=0" /></span></dd>
+</dl>
+</dd>
+</dl>
+<p>proof: Given an n-coloring of an interval of size MinN(L,n,n), by definition, you can find an arithmetic sequence with benefits of dimension n of length L. But now, the number of "benefit" boundaries is equal to the number of colors, so one of the homogenous boundaries, say of dimension k, has to have the same color as another one of the homogenous benefit boundaries, say the one of dimension p&lt;k. This allows a length L+1 arithmetic sequence (of dimension 1) to be constructed, by going along a line inside the k-dimensional boundary which ends right on the p-dimensional boundary, and including the terminal point in the p-dimensional boundary. In formulas:</p>
+<p>if</p>
+<dl>
+<dd>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.11" class="ltx_Math" alttext="{\displaystyle a+Ls_{1}+Ls_{2}...+Ls_{{D-k}}}"  xml:id="math.2459.11.1" xref="math.2459.11.1.cmml">
+  <semantics xml:id="math.2459.11.1a" xref="math.2459.11.1.cmml">
+    <mrow xml:id="math.2459.11.1.17" xref="math.2459.11.1.17.cmml">
+      <mi xml:id="math.2459.11.1.1" xref="math.2459.11.1.1.cmml">a</mi>
+      <mo xml:id="math.2459.11.1.2" xref="math.2459.11.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.11.1.17.1" xref="math.2459.11.1.17.1.cmml">
+        <mi xml:id="math.2459.11.1.3" xref="math.2459.11.1.3.cmml">L</mi>
+        <mo xml:id="math.2459.11.1.17.1.1" xref="math.2459.11.1.17.1.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.11.1.17.1.2" xref="math.2459.11.1.17.1.2.cmml">
+          <mi xml:id="math.2459.11.1.4" xref="math.2459.11.1.4.cmml">s</mi>
+          <mn xml:id="math.2459.11.1.5.1" xref="math.2459.11.1.5.1.cmml">1</mn>
+        </msub>
+      </mrow>
+      <mo xml:id="math.2459.11.1.2a" xref="math.2459.11.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.11.1.17.2" xref="math.2459.11.1.17.2.cmml">
+        <mi xml:id="math.2459.11.1.7" xref="math.2459.11.1.7.cmml">L</mi>
+        <mo xml:id="math.2459.11.1.17.2.1" xref="math.2459.11.1.17.2.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.11.1.17.2.2" xref="math.2459.11.1.17.2.2.cmml">
+          <mi xml:id="math.2459.11.1.8" xref="math.2459.11.1.8.cmml">s</mi>
+          <mn xml:id="math.2459.11.1.9.1" xref="math.2459.11.1.9.1.cmml">2</mn>
+        </msub>
+        <mo xml:id="math.2459.11.1.17.2.1a" xref="math.2459.11.1.17.2.1.cmml">⁢</mo>
+        <mi mathvariant="normal" xml:id="math.2459.11.1.12" xref="math.2459.11.1.12.cmml">…</mi>
+      </mrow>
+      <mo xml:id="math.2459.11.1.2b" xref="math.2459.11.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.11.1.17.3" xref="math.2459.11.1.17.3.cmml">
+        <mi xml:id="math.2459.11.1.14" xref="math.2459.11.1.14.cmml">L</mi>
+        <mo xml:id="math.2459.11.1.17.3.1" xref="math.2459.11.1.17.3.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.11.1.17.3.2" xref="math.2459.11.1.17.3.2.cmml">
+          <mi xml:id="math.2459.11.1.15" xref="math.2459.11.1.15.cmml">s</mi>
+          <mrow xml:id="math.2459.11.1.16.1" xref="math.2459.11.1.16.1.cmml">
+            <mi xml:id="math.2459.11.1.16.1.1" xref="math.2459.11.1.16.1.1.cmml">D</mi>
+            <mo xml:id="math.2459.11.1.16.1.2" xref="math.2459.11.1.16.1.2.cmml">-</mo>
+            <mi xml:id="math.2459.11.1.16.1.3" xref="math.2459.11.1.16.1.3.cmml">k</mi>
+          </mrow>
+        </msub>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.11.1.cmml" xref="math.2459.11.1">
+      <apply xml:id="math.2459.11.1.17.cmml" xref="math.2459.11.1.17">
+        <plus xml:id="math.2459.11.1.2.cmml" xref="math.2459.11.1.2"/>
+        <ci xml:id="math.2459.11.1.1.cmml" xref="math.2459.11.1.1">a</ci>
+        <apply xml:id="math.2459.11.1.17.1.cmml" xref="math.2459.11.1.17.1">
+          <times xml:id="math.2459.11.1.17.1.1.cmml" xref="math.2459.11.1.17.1.1"/>
+          <ci xml:id="math.2459.11.1.3.cmml" xref="math.2459.11.1.3">L</ci>
+          <apply xml:id="math.2459.11.1.17.1.2.cmml" xref="math.2459.11.1.17.1.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.11.1.17.1.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.11.1.4.cmml" xref="math.2459.11.1.4">s</ci>
+            <cn type="integer" xml:id="math.2459.11.1.5.1.cmml" xref="math.2459.11.1.5.1">1</cn>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.11.1.17.2.cmml" xref="math.2459.11.1.17.2">
+          <times xml:id="math.2459.11.1.17.2.1.cmml" xref="math.2459.11.1.17.2.1"/>
+          <ci xml:id="math.2459.11.1.7.cmml" xref="math.2459.11.1.7">L</ci>
+          <apply xml:id="math.2459.11.1.17.2.2.cmml" xref="math.2459.11.1.17.2.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.11.1.17.2.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.11.1.8.cmml" xref="math.2459.11.1.8">s</ci>
+            <cn type="integer" xml:id="math.2459.11.1.9.1.cmml" xref="math.2459.11.1.9.1">2</cn>
+          </apply>
+          <ci xml:id="math.2459.11.1.12.cmml" xref="math.2459.11.1.12">normal-…</ci>
+        </apply>
+        <apply xml:id="math.2459.11.1.17.3.cmml" xref="math.2459.11.1.17.3">
+          <times xml:id="math.2459.11.1.17.3.1.cmml" xref="math.2459.11.1.17.3.1"/>
+          <ci xml:id="math.2459.11.1.14.cmml" xref="math.2459.11.1.14">L</ci>
+          <apply xml:id="math.2459.11.1.17.3.2.cmml" xref="math.2459.11.1.17.3.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.11.1.17.3.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.11.1.15.cmml" xref="math.2459.11.1.15">s</ci>
+            <apply xml:id="math.2459.11.1.16.1.cmml" xref="math.2459.11.1.16.1">
+              <minus xml:id="math.2459.11.1.16.1.2.cmml" xref="math.2459.11.1.16.1.2"/>
+              <ci xml:id="math.2459.11.1.16.1.1.cmml" xref="math.2459.11.1.16.1.1">D</ci>
+              <ci xml:id="math.2459.11.1.16.1.3.cmml" xref="math.2459.11.1.16.1.3">k</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.11.1b" xref="math.2459.11.1.cmml">{\displaystyle a+Ls_{1}+Ls_{2}...+Ls_{{D-k}}}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=20fa6aa9e7878378c2d71004716b15f7&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=20fa6aa9e7878378c2d71004716b15f7&amp;mode=0" /></span> has the same color as</dd>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.12" class="ltx_Math" alttext="{\displaystyle a+Ls_{1}+Ls_{2}...+Ls_{{D-p}}}"  xml:id="math.2459.12.1" xref="math.2459.12.1.cmml">
+  <semantics xml:id="math.2459.12.1a" xref="math.2459.12.1.cmml">
+    <mrow xml:id="math.2459.12.1.17" xref="math.2459.12.1.17.cmml">
+      <mi xml:id="math.2459.12.1.1" xref="math.2459.12.1.1.cmml">a</mi>
+      <mo xml:id="math.2459.12.1.2" xref="math.2459.12.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.12.1.17.1" xref="math.2459.12.1.17.1.cmml">
+        <mi xml:id="math.2459.12.1.3" xref="math.2459.12.1.3.cmml">L</mi>
+        <mo xml:id="math.2459.12.1.17.1.1" xref="math.2459.12.1.17.1.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.12.1.17.1.2" xref="math.2459.12.1.17.1.2.cmml">
+          <mi xml:id="math.2459.12.1.4" xref="math.2459.12.1.4.cmml">s</mi>
+          <mn xml:id="math.2459.12.1.5.1" xref="math.2459.12.1.5.1.cmml">1</mn>
+        </msub>
+      </mrow>
+      <mo xml:id="math.2459.12.1.2a" xref="math.2459.12.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.12.1.17.2" xref="math.2459.12.1.17.2.cmml">
+        <mi xml:id="math.2459.12.1.7" xref="math.2459.12.1.7.cmml">L</mi>
+        <mo xml:id="math.2459.12.1.17.2.1" xref="math.2459.12.1.17.2.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.12.1.17.2.2" xref="math.2459.12.1.17.2.2.cmml">
+          <mi xml:id="math.2459.12.1.8" xref="math.2459.12.1.8.cmml">s</mi>
+          <mn xml:id="math.2459.12.1.9.1" xref="math.2459.12.1.9.1.cmml">2</mn>
+        </msub>
+        <mo xml:id="math.2459.12.1.17.2.1a" xref="math.2459.12.1.17.2.1.cmml">⁢</mo>
+        <mi mathvariant="normal" xml:id="math.2459.12.1.12" xref="math.2459.12.1.12.cmml">…</mi>
+      </mrow>
+      <mo xml:id="math.2459.12.1.2b" xref="math.2459.12.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.12.1.17.3" xref="math.2459.12.1.17.3.cmml">
+        <mi xml:id="math.2459.12.1.14" xref="math.2459.12.1.14.cmml">L</mi>
+        <mo xml:id="math.2459.12.1.17.3.1" xref="math.2459.12.1.17.3.1.cmml">⁢</mo>
+        <msub xml:id="math.2459.12.1.17.3.2" xref="math.2459.12.1.17.3.2.cmml">
+          <mi xml:id="math.2459.12.1.15" xref="math.2459.12.1.15.cmml">s</mi>
+          <mrow xml:id="math.2459.12.1.16.1" xref="math.2459.12.1.16.1.cmml">
+            <mi xml:id="math.2459.12.1.16.1.1" xref="math.2459.12.1.16.1.1.cmml">D</mi>
+            <mo xml:id="math.2459.12.1.16.1.2" xref="math.2459.12.1.16.1.2.cmml">-</mo>
+            <mi xml:id="math.2459.12.1.16.1.3" xref="math.2459.12.1.16.1.3.cmml">p</mi>
+          </mrow>
+        </msub>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.12.1.cmml" xref="math.2459.12.1">
+      <apply xml:id="math.2459.12.1.17.cmml" xref="math.2459.12.1.17">
+        <plus xml:id="math.2459.12.1.2.cmml" xref="math.2459.12.1.2"/>
+        <ci xml:id="math.2459.12.1.1.cmml" xref="math.2459.12.1.1">a</ci>
+        <apply xml:id="math.2459.12.1.17.1.cmml" xref="math.2459.12.1.17.1">
+          <times xml:id="math.2459.12.1.17.1.1.cmml" xref="math.2459.12.1.17.1.1"/>
+          <ci xml:id="math.2459.12.1.3.cmml" xref="math.2459.12.1.3">L</ci>
+          <apply xml:id="math.2459.12.1.17.1.2.cmml" xref="math.2459.12.1.17.1.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.12.1.17.1.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.12.1.4.cmml" xref="math.2459.12.1.4">s</ci>
+            <cn type="integer" xml:id="math.2459.12.1.5.1.cmml" xref="math.2459.12.1.5.1">1</cn>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.12.1.17.2.cmml" xref="math.2459.12.1.17.2">
+          <times xml:id="math.2459.12.1.17.2.1.cmml" xref="math.2459.12.1.17.2.1"/>
+          <ci xml:id="math.2459.12.1.7.cmml" xref="math.2459.12.1.7">L</ci>
+          <apply xml:id="math.2459.12.1.17.2.2.cmml" xref="math.2459.12.1.17.2.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.12.1.17.2.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.12.1.8.cmml" xref="math.2459.12.1.8">s</ci>
+            <cn type="integer" xml:id="math.2459.12.1.9.1.cmml" xref="math.2459.12.1.9.1">2</cn>
+          </apply>
+          <ci xml:id="math.2459.12.1.12.cmml" xref="math.2459.12.1.12">normal-…</ci>
+        </apply>
+        <apply xml:id="math.2459.12.1.17.3.cmml" xref="math.2459.12.1.17.3">
+          <times xml:id="math.2459.12.1.17.3.1.cmml" xref="math.2459.12.1.17.3.1"/>
+          <ci xml:id="math.2459.12.1.14.cmml" xref="math.2459.12.1.14">L</ci>
+          <apply xml:id="math.2459.12.1.17.3.2.cmml" xref="math.2459.12.1.17.3.2">
+            <csymbol cd="ambiguous" xml:id="math.2459.12.1.17.3.2.1.cmml">subscript</csymbol>
+            <ci xml:id="math.2459.12.1.15.cmml" xref="math.2459.12.1.15">s</ci>
+            <apply xml:id="math.2459.12.1.16.1.cmml" xref="math.2459.12.1.16.1">
+              <minus xml:id="math.2459.12.1.16.1.2.cmml" xref="math.2459.12.1.16.1.2"/>
+              <ci xml:id="math.2459.12.1.16.1.1.cmml" xref="math.2459.12.1.16.1.1">D</ci>
+              <ci xml:id="math.2459.12.1.16.1.3.cmml" xref="math.2459.12.1.16.1.3">p</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.12.1b" xref="math.2459.12.1.cmml">{\displaystyle a+Ls_{1}+Ls_{2}...+Ls_{{D-p}}}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=d9cf5436938bf484c051ae0b026fc1c6&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=d9cf5436938bf484c051ae0b026fc1c6&amp;mode=0" /></span></dd>
+</dl>
+</dd>
+</dl>
+<p>then</p>
+<dl>
+<dd>
+<dl>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.13" class="ltx_Math" alttext="{\displaystyle a+L*(s_{1}...+s_{{D-k}})+u*(s_{{D-k+1}}...+s_{p})}"  xml:id="math.2459.13.1" xref="math.2459.13.1.cmml">
+  <semantics xml:id="math.2459.13.1a" xref="math.2459.13.1.cmml">
+    <mrow xml:id="math.2459.13.1.28" xref="math.2459.13.1.28.cmml">
+      <mi xml:id="math.2459.13.1.1" xref="math.2459.13.1.1.cmml">a</mi>
+      <mo xml:id="math.2459.13.1.2" xref="math.2459.13.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.13.1.28.1" xref="math.2459.13.1.28.1.cmml">
+        <mi xml:id="math.2459.13.1.3" xref="math.2459.13.1.3.cmml">L</mi>
+        <mo xml:id="math.2459.13.1.4" xref="math.2459.13.1.4.cmml">*</mo>
+        <mrow xml:id="math.2459.13.1.28.1.1" xref="math.2459.13.1.28.1.1.cmml">
+          <mo xml:id="math.2459.13.1.28.1.1a" xref="math.2459.13.1.28.1.1.cmml">(</mo>
+          <mrow xml:id="math.2459.13.1.28.1.1b" xref="math.2459.13.1.28.1.1.cmml">
+            <mrow xml:id="math.2459.13.1.28.1.1.1" xref="math.2459.13.1.28.1.1.1.cmml">
+              <msub xml:id="math.2459.13.1.28.1.1.1.2" xref="math.2459.13.1.28.1.1.1.2.cmml">
+                <mi xml:id="math.2459.13.1.6" xref="math.2459.13.1.6.cmml">s</mi>
+                <mn xml:id="math.2459.13.1.7.1" xref="math.2459.13.1.7.1.cmml">1</mn>
+              </msub>
+              <mo xml:id="math.2459.13.1.28.1.1.1.1" xref="math.2459.13.1.28.1.1.1.1.cmml">⁢</mo>
+              <mi mathvariant="normal" xml:id="math.2459.13.1.10" xref="math.2459.13.1.10.cmml">…</mi>
+            </mrow>
+            <mo xml:id="math.2459.13.1.11" xref="math.2459.13.1.11.cmml">+</mo>
+            <msub xml:id="math.2459.13.1.28.1.1.2" xref="math.2459.13.1.28.1.1.2.cmml">
+              <mi xml:id="math.2459.13.1.12" xref="math.2459.13.1.12.cmml">s</mi>
+              <mrow xml:id="math.2459.13.1.13.1" xref="math.2459.13.1.13.1.cmml">
+                <mi xml:id="math.2459.13.1.13.1.1" xref="math.2459.13.1.13.1.1.cmml">D</mi>
+                <mo xml:id="math.2459.13.1.13.1.2" xref="math.2459.13.1.13.1.2.cmml">-</mo>
+                <mi xml:id="math.2459.13.1.13.1.3" xref="math.2459.13.1.13.1.3.cmml">k</mi>
+              </mrow>
+            </msub>
+          </mrow>
+          <mo xml:id="math.2459.13.1.28.1.1c" xref="math.2459.13.1.28.1.1.cmml">)</mo>
+        </mrow>
+      </mrow>
+      <mo xml:id="math.2459.13.1.2a" xref="math.2459.13.1.2.cmml">+</mo>
+      <mrow xml:id="math.2459.13.1.28.2" xref="math.2459.13.1.28.2.cmml">
+        <mi xml:id="math.2459.13.1.16" xref="math.2459.13.1.16.cmml">u</mi>
+        <mo xml:id="math.2459.13.1.17" xref="math.2459.13.1.17.cmml">*</mo>
+        <mrow xml:id="math.2459.13.1.28.2.1" xref="math.2459.13.1.28.2.1.cmml">
+          <mo xml:id="math.2459.13.1.28.2.1a" xref="math.2459.13.1.28.2.1.cmml">(</mo>
+          <mrow xml:id="math.2459.13.1.28.2.1b" xref="math.2459.13.1.28.2.1.cmml">
+            <mrow xml:id="math.2459.13.1.28.2.1.1" xref="math.2459.13.1.28.2.1.1.cmml">
+              <msub xml:id="math.2459.13.1.28.2.1.1.2" xref="math.2459.13.1.28.2.1.1.2.cmml">
+                <mi xml:id="math.2459.13.1.19" xref="math.2459.13.1.19.cmml">s</mi>
+                <mrow xml:id="math.2459.13.1.20.1" xref="math.2459.13.1.20.1.cmml">
+                  <mrow xml:id="math.2459.13.1.20.1.6" xref="math.2459.13.1.20.1.6.cmml">
+                    <mi xml:id="math.2459.13.1.20.1.1" xref="math.2459.13.1.20.1.1.cmml">D</mi>
+                    <mo xml:id="math.2459.13.1.20.1.2" xref="math.2459.13.1.20.1.2.cmml">-</mo>
+                    <mi xml:id="math.2459.13.1.20.1.3" xref="math.2459.13.1.20.1.3.cmml">k</mi>
+                  </mrow>
+                  <mo xml:id="math.2459.13.1.20.1.4" xref="math.2459.13.1.20.1.4.cmml">+</mo>
+                  <mn xml:id="math.2459.13.1.20.1.5" xref="math.2459.13.1.20.1.5.cmml">1</mn>
+                </mrow>
+              </msub>
+              <mo xml:id="math.2459.13.1.28.2.1.1.1" xref="math.2459.13.1.28.2.1.1.1.cmml">⁢</mo>
+              <mi mathvariant="normal" xml:id="math.2459.13.1.23" xref="math.2459.13.1.23.cmml">…</mi>
+            </mrow>
+            <mo xml:id="math.2459.13.1.24" xref="math.2459.13.1.24.cmml">+</mo>
+            <msub xml:id="math.2459.13.1.28.2.1.2" xref="math.2459.13.1.28.2.1.2.cmml">
+              <mi xml:id="math.2459.13.1.25" xref="math.2459.13.1.25.cmml">s</mi>
+              <mi xml:id="math.2459.13.1.26.1" xref="math.2459.13.1.26.1.cmml">p</mi>
+            </msub>
+          </mrow>
+          <mo xml:id="math.2459.13.1.28.2.1c" xref="math.2459.13.1.28.2.1.cmml">)</mo>
+        </mrow>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.13.1.cmml" xref="math.2459.13.1">
+      <apply xml:id="math.2459.13.1.28.cmml" xref="math.2459.13.1.28">
+        <plus xml:id="math.2459.13.1.2.cmml" xref="math.2459.13.1.2"/>
+        <ci xml:id="math.2459.13.1.1.cmml" xref="math.2459.13.1.1">a</ci>
+        <apply xml:id="math.2459.13.1.28.1.cmml" xref="math.2459.13.1.28.1">
+          <times xml:id="math.2459.13.1.4.cmml" xref="math.2459.13.1.4"/>
+          <ci xml:id="math.2459.13.1.3.cmml" xref="math.2459.13.1.3">L</ci>
+          <apply xml:id="math.2459.13.1.28.1.1.cmml" xref="math.2459.13.1.28.1.1">
+            <plus xml:id="math.2459.13.1.11.cmml" xref="math.2459.13.1.11"/>
+            <apply xml:id="math.2459.13.1.28.1.1.1.cmml" xref="math.2459.13.1.28.1.1.1">
+              <times xml:id="math.2459.13.1.28.1.1.1.1.cmml" xref="math.2459.13.1.28.1.1.1.1"/>
+              <apply xml:id="math.2459.13.1.28.1.1.1.2.cmml" xref="math.2459.13.1.28.1.1.1.2">
+                <csymbol cd="ambiguous" xml:id="math.2459.13.1.28.1.1.1.2.1.cmml">subscript</csymbol>
+                <ci xml:id="math.2459.13.1.6.cmml" xref="math.2459.13.1.6">s</ci>
+                <cn type="integer" xml:id="math.2459.13.1.7.1.cmml" xref="math.2459.13.1.7.1">1</cn>
+              </apply>
+              <ci xml:id="math.2459.13.1.10.cmml" xref="math.2459.13.1.10">normal-…</ci>
+            </apply>
+            <apply xml:id="math.2459.13.1.28.1.1.2.cmml" xref="math.2459.13.1.28.1.1.2">
+              <csymbol cd="ambiguous" xml:id="math.2459.13.1.28.1.1.2.1.cmml">subscript</csymbol>
+              <ci xml:id="math.2459.13.1.12.cmml" xref="math.2459.13.1.12">s</ci>
+              <apply xml:id="math.2459.13.1.13.1.cmml" xref="math.2459.13.1.13.1">
+                <minus xml:id="math.2459.13.1.13.1.2.cmml" xref="math.2459.13.1.13.1.2"/>
+                <ci xml:id="math.2459.13.1.13.1.1.cmml" xref="math.2459.13.1.13.1.1">D</ci>
+                <ci xml:id="math.2459.13.1.13.1.3.cmml" xref="math.2459.13.1.13.1.3">k</ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+        <apply xml:id="math.2459.13.1.28.2.cmml" xref="math.2459.13.1.28.2">
+          <times xml:id="math.2459.13.1.17.cmml" xref="math.2459.13.1.17"/>
+          <ci xml:id="math.2459.13.1.16.cmml" xref="math.2459.13.1.16">u</ci>
+          <apply xml:id="math.2459.13.1.28.2.1.cmml" xref="math.2459.13.1.28.2.1">
+            <plus xml:id="math.2459.13.1.24.cmml" xref="math.2459.13.1.24"/>
+            <apply xml:id="math.2459.13.1.28.2.1.1.cmml" xref="math.2459.13.1.28.2.1.1">
+              <times xml:id="math.2459.13.1.28.2.1.1.1.cmml" xref="math.2459.13.1.28.2.1.1.1"/>
+              <apply xml:id="math.2459.13.1.28.2.1.1.2.cmml" xref="math.2459.13.1.28.2.1.1.2">
+                <csymbol cd="ambiguous" xml:id="math.2459.13.1.28.2.1.1.2.1.cmml">subscript</csymbol>
+                <ci xml:id="math.2459.13.1.19.cmml" xref="math.2459.13.1.19">s</ci>
+                <apply xml:id="math.2459.13.1.20.1.cmml" xref="math.2459.13.1.20.1">
+                  <plus xml:id="math.2459.13.1.20.1.4.cmml" xref="math.2459.13.1.20.1.4"/>
+                  <apply xml:id="math.2459.13.1.20.1.6.cmml" xref="math.2459.13.1.20.1.6">
+                    <minus xml:id="math.2459.13.1.20.1.2.cmml" xref="math.2459.13.1.20.1.2"/>
+                    <ci xml:id="math.2459.13.1.20.1.1.cmml" xref="math.2459.13.1.20.1.1">D</ci>
+                    <ci xml:id="math.2459.13.1.20.1.3.cmml" xref="math.2459.13.1.20.1.3">k</ci>
+                  </apply>
+                  <cn type="integer" xml:id="math.2459.13.1.20.1.5.cmml" xref="math.2459.13.1.20.1.5">1</cn>
+                </apply>
+              </apply>
+              <ci xml:id="math.2459.13.1.23.cmml" xref="math.2459.13.1.23">normal-…</ci>
+            </apply>
+            <apply xml:id="math.2459.13.1.28.2.1.2.cmml" xref="math.2459.13.1.28.2.1.2">
+              <csymbol cd="ambiguous" xml:id="math.2459.13.1.28.2.1.2.1.cmml">subscript</csymbol>
+              <ci xml:id="math.2459.13.1.25.cmml" xref="math.2459.13.1.25">s</ci>
+              <ci xml:id="math.2459.13.1.26.1.cmml" xref="math.2459.13.1.26.1">p</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.13.1b" xref="math.2459.13.1.cmml">{\displaystyle a+L*(s_{1}...+s_{{D-k}})+u*(s_{{D-k+1}}...+s_{p})}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 45.556ex; height: 2.889ex; vertical-align: -1ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=9e58db7eab2900572064826c0c940b02&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=9e58db7eab2900572064826c0c940b02&amp;mode=0" /></span> have the same color</dd>
+<dd><span><span class="mwe-math-mathml-inline" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" id="math.2459.14" class="ltx_Math" alttext="{\displaystyle u=0,1,2,...,L-1,L}"  xml:id="math.2459.14.1" xref="math.2459.14.1.cmml">
+  <semantics xml:id="math.2459.14.1a" xref="math.2459.14.1.cmml">
+    <mrow xml:id="math.2459.14.1.18" xref="math.2459.14.1.18.cmml">
+      <mi xml:id="math.2459.14.1.1" xref="math.2459.14.1.1.cmml">u</mi>
+      <mo xml:id="math.2459.14.1.2" xref="math.2459.14.1.2.cmml">=</mo>
+      <mrow xml:id="math.2459.14.1.18.1" xref="math.2459.14.1.18.1.cmml">
+        <mn xml:id="math.2459.14.1.3" xref="math.2459.14.1.3.cmml">0</mn>
+        <mo xml:id="math.2459.14.1.18.1a" xref="math.2459.14.1.18.1.cmml">,</mo>
+        <mn xml:id="math.2459.14.1.5" xref="math.2459.14.1.5.cmml">1</mn>
+        <mo xml:id="math.2459.14.1.18.1b" xref="math.2459.14.1.18.1.cmml">,</mo>
+        <mn xml:id="math.2459.14.1.7" xref="math.2459.14.1.7.cmml">2</mn>
+        <mo xml:id="math.2459.14.1.18.1c" xref="math.2459.14.1.18.1.cmml">,</mo>
+        <mi mathvariant="normal" xml:id="math.2459.14.1.11" xref="math.2459.14.1.11.cmml">…</mi>
+        <mo xml:id="math.2459.14.1.18.1d" xref="math.2459.14.1.18.1.cmml">,</mo>
+        <mrow xml:id="math.2459.14.1.18.1.2" xref="math.2459.14.1.18.1.2.cmml">
+          <mi xml:id="math.2459.14.1.13" xref="math.2459.14.1.13.cmml">L</mi>
+          <mo xml:id="math.2459.14.1.14" xref="math.2459.14.1.14.cmml">-</mo>
+          <mn xml:id="math.2459.14.1.15" xref="math.2459.14.1.15.cmml">1</mn>
+        </mrow>
+        <mo xml:id="math.2459.14.1.18.1e" xref="math.2459.14.1.18.1.cmml">,</mo>
+        <mi xml:id="math.2459.14.1.17" xref="math.2459.14.1.17.cmml">L</mi>
+      </mrow>
+    </mrow>
+    <annotation-xml encoding="MathML-Content" xml:id="math.2459.14.1.cmml" xref="math.2459.14.1">
+      <apply xml:id="math.2459.14.1.18.cmml" xref="math.2459.14.1.18">
+        <eq xml:id="math.2459.14.1.2.cmml" xref="math.2459.14.1.2"/>
+        <ci xml:id="math.2459.14.1.1.cmml" xref="math.2459.14.1.1">u</ci>
+        <apply xml:id="math.2459.14.1.18.1.cmml" xref="math.2459.14.1.18.1">
+          <list xml:id="math.2459.14.1.18.1.1.cmml"/>
+          <cn type="integer" xml:id="math.2459.14.1.3.cmml" xref="math.2459.14.1.3">0</cn>
+          <cn type="integer" xml:id="math.2459.14.1.5.cmml" xref="math.2459.14.1.5">1</cn>
+          <cn type="integer" xml:id="math.2459.14.1.7.cmml" xref="math.2459.14.1.7">2</cn>
+          <ci xml:id="math.2459.14.1.11.cmml" xref="math.2459.14.1.11">normal-…</ci>
+          <apply xml:id="math.2459.14.1.18.1.2.cmml" xref="math.2459.14.1.18.1.2">
+            <minus xml:id="math.2459.14.1.14.cmml" xref="math.2459.14.1.14"/>
+            <ci xml:id="math.2459.14.1.13.cmml" xref="math.2459.14.1.13">L</ci>
+            <cn type="integer" xml:id="math.2459.14.1.15.cmml" xref="math.2459.14.1.15">1</cn>
+          </apply>
+          <ci xml:id="math.2459.14.1.17.cmml" xref="math.2459.14.1.17">L</ci>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation encoding="application/x-tex" xml:id="math.2459.14.1b" xref="math.2459.14.1.cmml">{\displaystyle u=0,1,2,...,L-1,L}</annotation>
+  </semantics>
+</math></span><img class="mwe-math-fallback-svg-inline" style="display: none; width: 23.111ex; height: 2.222ex; vertical-align: -0.667ex; margin-top: 1px; margin-right: 0px; margin-bottom: 1px; margin-left: 0px; position: static; width: 10;" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=9a0d1a7a473196070c408f75fa178762&amp;mode=7" /> <img class="mwe-math-fallback-png-inline" src="http://127.0.0.1:8080/w/index.php?title=Special:MathShowImage&amp;hash=9a0d1a7a473196070c408f75fa178762&amp;mode=0" /></span> i.e. u makes a sequence of length L+1.</dd>
+</dl>
+</dd>
+</dl>
+<p>This constructs a sequence of dimension 1, and the "benefits" are automatic, just add on another point of whatever color. To include this boundary point, one has to make the interval longer by the maximum possible value of the stride, which is certainly less than the interval size. So doubling the interval size will definitely work, and this is the reason for the factor of two. This completes the induction on L.</p>
+<p>Base case: MinN(1,d,n)=1, i.e. if you want a length 1 homogenous d-dimensional arithmetic sequence, with or without benefits, you have nothing to do. So this forms the base of the induction. The VanDerWaerden theorem itself is the assertion that MinN(L,1,N) is finite, and it follows from the base case and the induction steps.<sup id="cite_ref-Graham1974_5-1" class="reference"><a href="#cite_note-Graham1974-5">[5]</a></sup></p>
+<h2><span class="mw-headline" id="See_also">See also</span></h2>
+<ul>
+<li><a href="../../../../articles/15834.html" title="Van der Waerden number">Van der Waerden numbers</a> for all known values for <i>W</i>(<i>n</i>,<i>r</i>) and the best-known bounds for unknown values</li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span></h2>
+<p><a href="http://127.0.0.1:8080/w/index.php?title=Template:Reflist&amp;action=edit&amp;redlink=1" class="new" title="Template:Reflist (page does not exist)">Template:Reflist</a></p>
+<h2><span class="mw-headline" id="External_links">External links</span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.math.uga.edu/~lyall/REU/ramsey.pdf">Proof of Van der Waerden's theorem</a>
+<ol class="references"></ol>
+</li>
+</ul>
+<ul>
+<li id="cite_note-1"><span class="mw-cite-backlink"><a href="#cite_ref-1">↑</a></span> <span class="reference-text"><a href="http://127.0.0.1:8080/w/index.php?title=Template:Cite_journal&amp;action=edit&amp;redlink=1" class="new" title="Template:Cite journal (page does not exist)">Template:Cite journal</a></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><a href="#cite_ref-2">↑</a></span> <span class="reference-text"><a href="http://127.0.0.1:8080/w/index.php?title=Template:Cite_journal&amp;action=edit&amp;redlink=1" class="new" title="Template:Cite journal (page does not exist)">Template:Cite journal</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><a href="#cite_ref-3">↑</a></span> <span class="reference-text"><a href="http://127.0.0.1:8080/w/index.php?title=Template:Cite_journal&amp;action=edit&amp;redlink=1" class="new" title="Template:Cite journal (page does not exist)">Template:Cite journal</a></span></li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><a href="#cite_ref-4">↑</a></span> <span class="reference-text"><a href="http://127.0.0.1:8080/w/index.php?title=Template:Cite_journal&amp;action=edit&amp;redlink=1" class="new" title="Template:Cite journal (page does not exist)">Template:Cite journal</a></span></li>
+<li id="cite_note-Graham1974-5"><span class="mw-cite-backlink">↑ <sup><a href="#cite_ref-Graham1974_5-0">5.0</a></sup> <sup><a href="#cite_ref-Graham1974_5-1">5.1</a></sup></span> <span class="reference-text"><a href="http://127.0.0.1:8080/w/index.php?title=Template:Cite_journal&amp;action=edit&amp;redlink=1" class="new" title="Template:Cite journal (page does not exist)">Template:Cite journal</a></span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><a href="#cite_ref-6">↑</a></span> <span class="reference-text"><a href="http://127.0.0.1:8080/w/index.php?title=Template:Cite_document&amp;action=edit&amp;redlink=1" class="new" title="Template:Cite document (page does not exist)">Template:Cite document</a></span></li>
+</ul>
+<!-- 
+NewPP limit report
+CPU time usage: 1.228 seconds
+Real time usage: 2.359 seconds
+Preprocessor visited node count: 317/1000000
+Preprocessor generated node count: 1648/1000000
+Post‐expand include size: 178/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+--></body>
+</html>

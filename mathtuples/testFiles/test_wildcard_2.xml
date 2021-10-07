@@ -1,0 +1,49 @@
+        <m:math>
+          <m:semantics xml:id="m8.1a">
+            <m:apply xml:id="m8.1.10" xref="m8.1.10.pmml">
+              <m:eq xml:id="m8.1.3" xref="m8.1.3.pmml"/>
+              <m:apply xml:id="m8.1.10.1" xref="m8.1.10.1.pmml">
+                <m:csymbol cd="ambiguous" xml:id="m8.1.10.1.1">superscript</m:csymbol>
+                <m:apply xml:id="m8.1.10.1" xref="m8.1.10.1.pmml">
+                  <m:csymbol cd="ambiguous" xml:id="m8.1.10.1.1">subscript</m:csymbol>
+                  <m:ci xml:id="m8.1.1" xref="m8.1.1.pmml">π</m:ci>
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="a"/>
+                </m:apply>
+                <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="b"/>
+              </m:apply>
+              <m:apply xml:id="m8.1.10.2" xref="m8.1.10.2.pmml">
+                <m:times xml:id="m8.1.10.2.1" xref="m8.1.10.2.1.pmml"/>
+                <m:ci xml:id="m8.1.4" xref="m8.1.4.pmml">A</m:ci>
+                <m:apply xml:id="m8.1.10.2.2.2" xref="m8.1.10.2.2.pmml">
+                  <m:plus xml:id="m8.1.7" xref="m8.1.7.pmml"/>
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="b"/>
+                  <m:ci xml:id="m8.1.8" xref="m8.1.1.pmml">c</m:ci>
+                </m:apply>
+              </m:apply>
+            </m:apply>
+            <m:annotation-xml encoding="MathML-Presentation" xml:id="m8.1b">
+              <m:mrow xml:id="m8.1.10.pmml" xref="m8.1.10">
+                <m:msubsup xml:id="m8.1.10.1.pmml" xref="m8.1.10.1">
+                  <m:mi xml:id="m8.1.1.pmml" xref="m8.1.1">π</m:mi>
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="a"/>
+                  <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="b"/>
+                </m:msubsup>
+                <m:mo xml:id="m8.1.3.pmml" xref="m8.1.3">=</m:mo>
+                <m:mrow xml:id="m8.1.10.2.pmml" xref="m8.1.10.2">
+                  <m:mi xml:id="m8.1.4.pmml" xref="m8.1.4">A</m:mi>
+                  <m:mo xml:id="m8.1.10.2.1.pmml" xref="m8.1.10.2.1">⁢</m:mo>
+                  <m:mrow xml:id="m8.1.10.2.2.pmml" xref="m8.1.10.2.2.2">
+                    <m:mo xml:id="m8.1.5.pmml">(</m:mo>
+                    <m:mrow xml:id="m8.1.10.2.2.2.pmml" xref="m8.1.10.2.2.2">
+                      <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="b"/>
+                      <m:mo xml:id="m8.1.7.pmml" xref="m8.1.7">+</m:mo>
+                      <m:mi xml:id="m8.1.8.pmml" xref="m8.1.1">c</m:mi>
+                    </m:mrow>
+                    <m:mo xml:id="m8.1.9.pmml">)</m:mo>
+                  </m:mrow>
+                </m:mrow>
+              </m:mrow>
+            </m:annotation-xml>
+            <m:annotation encoding="application/x-tex" xml:id="m8.1c">{\pi}_{\qvar@construct{a}}^{\qvar@construct{b}}=A(\qvar@construct{b}+c)</m:annotation>
+          </m:semantics>
+        </m:math>
