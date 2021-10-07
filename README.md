@@ -82,4 +82,4 @@ Wild card expansion is also applicable to tuples representing repeated symbols. 
   ```
 
 ## Example with default (optimal) parameter settings
-  `python3 -m convert -infile [your-file]`
+  `python3 -m mathtuples.convert -infile [your-file]`
