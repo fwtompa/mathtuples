@@ -50,11 +50,14 @@ Wild card expansion is also applicable to tuples representing repeated symbols. 
 5. Yin Ki Ng, Dallas J. Fraser, Besat Kassaie, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Ongoing Viability of Traditional MathIR." _CLEF (Working Notes) 2021_: 63-81.
 
 ## Setup
+After downloading the directory with all files, make that your working directory. Then issue the following two commands:
 - `python3 -m build`
 - `python3 -m pip install dist/mathtuples-1.0-py3-none-any.whl`
 
+For help with installing packages, see (for example) https://packaging.python.org/tutorials/installing-packages/.
+
 ## Testing
-  python3 -m mathtuples.testConvert
+  `python3 -m mathtuples.testConvert`
 
 ## Usage
 ```
@@ -83,3 +86,12 @@ Wild card expansion is also applicable to tuples representing repeated symbols. 
 
 ## Example with default (optimal) parameter settings
   `python3 -m mathtuples.convert -infile [your-file]`
+  
+  For example, `python3 -m mathtuples.convert -infile mathtuples/testfiles/test_2.xml` will output:
+```
+#(start)# #(v!α,[n,b],-)# #(v!α,[n,b])# #(v!α,m!()1x1,n,-)# #(v!α,m!()1x1,n)# #(m!()1x1,[n,w],n)# #(m!()1x1,[n,w])# #(m!()1x1,=,n,n)# #(m!()1x1,=,n)# #(=,v!y,n,nn)# #(=,v!y,n)# #(v!y,n!0,b,nnn)# #(v!y,n!0,b)# #(n!0,!0,nnnb)# #(n!0,!0)# #(m!()1x1,v!x,w,n)# #(m!()1x1,v!x,w)# #(v!x,n!0,b,nw)# #(v!x,n!0,b)# #(n!0,!0,nwb)# #(n!0,!0)# #(v!α,n!0,b,-)# #(v!α,n!0,b)# #(n!0,!0,b)# #(n!0,!0)# #(end)#
+```
+and  `python3 -m mathtuples.convert -infile mathtuples/testfiles/test_2.xml -repetitions` will output:
+```
+#(start)# #(v!α,[n,b],-)# #(v!α,[n,b])# #(v!α,m!()1x1,n,-)# #(v!α,m!()1x1,n)# #(m!()1x1,[n,w],n)# #(m!()1x1,[n,w])# #(m!()1x1,=,n,n)# #(m!()1x1,=,n)# #(=,v!y,n,nn)# #(=,v!y,n)# #(v!y,n!0,b,nnn)# #(v!y,n!0,b)# #(n!0,!0,nnnb)# #(n!0,!0)# #(m!()1x1,v!x,w,n)# #(m!()1x1,v!x,w)# #(v!x,n!0,b,nw)# #(v!x,n!0,b)# #(n!0,!0,nwb)# #(n!0,!0)# #{n!0,nnb,wb,n}# #{n!0,nnb,wb}# #(v!α,n!0,b,-)# #(v!α,n!0,b)# #(n!0,!0,b)# #(n!0,!0)# #{n!0,nnnb,b,-}# #{n!0,nnnb,b}# #{n!0,nwb,b,-}# #{n!0,nwb,b}# #(end)#
+```
