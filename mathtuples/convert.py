@@ -430,7 +430,7 @@ if __name__ == "__main__":
                    unbounded=args.unbounded,
                    shortened=args.shortened,
                    location=args.location,
-                   repetitions=repetitions,
+                   repetitions=args.repetitions,
                    synonyms=args.synonyms
                    )
     # logger.info("Done")
