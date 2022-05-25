@@ -1,4 +1,4 @@
-# Description of math token creation for Tangent-L
+# Description of math token creation
 Frank Tompa, March 2022
 (version 2: May 2022)
 
