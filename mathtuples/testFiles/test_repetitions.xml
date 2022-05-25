@@ -5,7 +5,7 @@
                 <mi>a</mi>
                 <mn>0</mn>
               </msub>
-              <mo>+</mo>
+              <mo>!</mo>
               <mrow>
                 <mfrac>
                   <msub>
@@ -17,7 +17,7 @@
                       <mi>a</mi>
                       <mn>1</mn>
                     </msub>
-                    <mo>+</mo>
+                    <mo>!</mo>
                   </mrow>
                 </mfrac>
                 <mfrac>
@@ -30,7 +30,7 @@
                       <mi>a</mi>
                       <mn>2</mn>
                     </msub>
-                    <mo>+</mo>
+                    <mo>!</mo>
                   </mrow>
                 </mfrac>
                 <mi mathvariant="normal">⋯</mi>
@@ -84,6 +84,6 @@
                 </apply>
               </apply>
             </annotation-xml>
-            <annotation encoding="application/x-tex">a_{0}+\frac{b_{1}}{a_{1}+}\frac{b_{2}}{a_{2}+}\cdots</annotation>
+            <annotation encoding="application/x-tex">a_{0}!\frac{b_{1}}{a_{1}!}\frac{b_{2}}{a_{2}!}\cdots</annotation>
           </semantics>
         </math>

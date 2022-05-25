@@ -44,6 +44,8 @@ except ImportError:
    from mathml import MathML
 
 REP_TAG = "!REP!"
+MAX_HEIGHT = 100 # do not calculate tree heights larger than this value
+
 
 __author__ = 'Nidhin, FWTompa'
 
@@ -104,7 +106,17 @@ class MathSymbol:
         else:
             return loc
 
-    def get_height(self, height=0):
+    @classmethod
+    def decode_loc(cls,loc):
+        if loc == '-':
+            return ''
+        else:
+            return cls.rldecode(loc)
+
+
+    def get_height(self, height=0,max=MAX_HEIGHT):
+        if height >= max: # do not measure trees higher than max
+           return max
         children = [(self.next, 'n'), (self.above, 'a'),
                     (self.below, 'b'), (self.pre_above, 'c'),
                     (self.over, 'o'), (self.under, 'u'),
@@ -127,13 +139,15 @@ class MathSymbol:
                   edge_pairs=False,
                   eol=False,
                   unbounded=False,
-                  repetitions=False,
+                  repetitions="",
                   repDict = {},
-                  shortened=False):
+                  max_dup = 0,
+                  shortened=False,
+                  anchors=[]):
         """
         Return the pairs in the symbol tree
 
-        :param prefix: unencoded path from the root to self (for location id)
+        :param prefix: unencoded path from the root or nearest anchor to self (for location id)
         :type  prefix: string
         :param window: the max distance between symbol pairs to include
         :type  window: int
@@ -145,16 +159,35 @@ class MathSymbol:
         :type edge_pairs: boolean
         :param unbounded: If True will include all pairs of nodes (N, N)
         :type unbounded: boolean
-        :param repetitions: If True will include all C(n,2) pairs of locations for each repeated node
-        :type repetitions: boolean
+        :param repetitions: string of node labels to include all C(n,2) pairs of locations for each repeated node
+        :type repetitions: string
         :param repDict: Dictionary mapping symbols to locations found so far
-        :type repetitions: dictionary
+        :type repDict: dictionary mapping strings to strings
+        :param max_dup: maximum number of repetitions to consider for duplicated node labels
+        :type max_dup: int
         :param shortened: If True will shorten the path for various pairs
         :type shortened: boolean
+        :param anchors: List of symbols that reset prefix to empty
+        :type anchors: list of strings
 
         :return list of tuples
         :rtype list
         """
+        def get_type(label):
+            """
+            given string "t!x", returns t
+            """
+            sep = label.find("!")
+            if sep == -1: # no ! present
+                if label[0] == "?":
+                    return "W" #wildcard of unknown type
+                else:
+                    return "O" # must be an operator
+            elif label[0] == "!":
+                return "O" # the operator is "!"
+            else:
+                return label[0:sep]
+       
         def mk_helper(location):
             def helper(tup):
                 right, rel_path = tup
@@ -171,6 +204,8 @@ class MathSymbol:
                     return (self.tag, right.tag, rel_path, location)
             return helper
 
+        if len(prefix) > MAX_HEIGHT: # abort: cannot handle very high trees (recursion exception)
+             return [] 
         loc = self.encode_loc(prefix)
         ret = []
         children = [(self.next, 'n'), (self.above, 'a'),
@@ -195,7 +230,12 @@ class MathSymbol:
                                                             window,
                                                             unbounded=unbounded
                                                             ))))
-                ret.extend(child.get_pairs(prefix+label,
+                # check for resetting the prefix to a new anchor
+                if self.tag in anchors:
+                    new_prefix = ""
+                else:
+                    new_prefix = prefix + label
+                ret.extend(child.get_pairs(new_prefix,
                                            window,
                                            eol=eol,
                                            symbol_pairs=symbol_pairs,
@@ -205,7 +245,9 @@ class MathSymbol:
                                            unbounded=unbounded,
                                            repetitions=repetitions,
                                            repDict=repDict,
-                                           shortened=shortened))
+                                           max_dup=max_dup,
+                                           shortened=shortened,
+                                           anchors=anchors))
         if terminal_symbols and len(ret) == 0:
             # add the terminal symbols
             ret.append((self.tag, "!0", loc))
@@ -217,11 +259,25 @@ class MathSymbol:
             ret.extend([(prefix[-1], label, self.tag, loc)
                         for child, label in children
                         if child and label != "w"])
-        if repetitions:
+        if get_type(self.tag) in repetitions:
             # insert symbol into dictionary and check for repetitions
             locations = repDict.setdefault(self.tag,[]) # retrieve previous positions
+            """
+            # use all pairs up to max_dup instances
+            if len(locations) < max_dup: # only generate tuples for small number of reps
+                # loc is the location of the current symbol and prefix is the same but unencoded
+                for pos in locations:
+                    common = os.path.commonprefix([prefix,pos])
+                    if common == prefix: # both symbols on same path
+                        ret.append((REP_TAG,self.tag,self.encode_loc(pos[len(prefix):]),loc))
+                    else:
+                        ret.append((REP_TAG,self.tag,self.encode_loc(pos[len(common):]),self.encode_loc(prefix[len(common):]),self.encode_loc(common)))
+            """
+            # use closest pairs in spanning tree only -- is this a good idea? quite different answers possible if one is missing.
+            # instead use closest pair in depth first traversal
             # loc is the location of the current symbol and prefix is the same but unencoded
-            for pos in locations:
+            if len(locations) > 0:
+                pos = locations[-1]
                 common = os.path.commonprefix([prefix,pos])
                 if common == prefix: # both symbols on same path
                     ret.append((REP_TAG,self.tag,self.encode_loc(pos[len(prefix):]),loc))
@@ -380,7 +436,7 @@ class MathSymbol:
             if elem:
                 num_cols = 1  # count the number of columns in the first row
                 while elem.element:
-                    num_cols = num_cols + 1
+                    num_cols += 1
                     elem = elem.element
             else:
                 num_cols = 0 # row has no columns
@@ -389,10 +445,14 @@ class MathSymbol:
         root = cls('M!' + str(num_rows) + "x" + str(num_cols),mathml=[original_element])
         if num_rows > 0: # elem points to last entry in first row (row 0)
             root.within = children[0] if children[0] or len(children) == 1 else cls('W!')
+            # make all rows have the same number of elements:
             for i in range(1,len(children)):
-                while elem.element:
-                    elem = elem.element
-                elem.element = children[i]
+                 elem.element = children[i]  # link last element from row i-1 to first in row i
+                 for j in range(0,num_cols):
+                     if not elem.element:
+                         elem.element = cls("W!")
+                     elem = elem.element
+            elem.element = None
         return root
     
     @classmethod
@@ -401,6 +461,8 @@ class MathSymbol:
         Parse symbol tree from mathml using recursive descent
         :param elem: a node in MathML structure on which an iterator is defined to select children
         :type  elem: a MathML node
+        :return: the root of the corresponding SLT, a list of roots, or None
+        :rtype:  MathSymbol
         """
 
         #print(elem.tag,flush=True)
@@ -411,11 +473,34 @@ class MathSymbol:
             :return: True if node to be ignored
             :rtype:  boolean
             """
-            if not elem:
+            if elem is None:
                 return True
-            if elem.tag in ['W!', '']: # simple types with no values and no links
+            elif elem.tag in ['W!', '']: # simple types with no values and no links
                 return not (elem.next or elem.above or elem.below or elem.over or elem.under
                             or elem.within or elem.pre_above or elem.pre_below or elem.element)
+            else:
+                return False
+
+        def ensure(children,count):
+            if not children or len(children) != count:
+                return False
+            else:
+                for i in range(count):
+                    if ignore_tag(children[i]):
+                        children[i] = cls("W!")
+                return True
+
+        def get_value(elem):
+            if not elem: # => there are no children (since elem cannot be None)
+                return clean(elem.text)
+            else: # use the src attribute of the mglyph child
+                child = list(elem)[0] # first/only child
+                if not child.tag.startswith('{'): # handle missing namespace declaration
+                    child.tag = MathML.namespace+child.tag
+                if child.tag != MathML.mglyph or 'src' not in child.attrib:
+                    return ""
+                else:
+                     return child.attrib['src']
 
         def clean(tag):
             """
@@ -433,37 +518,20 @@ class MathSymbol:
             if tag in ['\u2061', '\u2062', '\u2063', '\u2064']: # invisible operators
                 return ""
             return tag
-        if not elem.tag.startswith('{'): # handle missing namespace declaration (FWT) -- should be reported as warning!
-            elem.tag = MathML.namespace+elem.tag
 
-        if elem.tag == MathML.math:
-            children = list(elem)
-            if len(children) == 1:
-                return cls.parse_from_mathml(children[0])
-            elif len(children) == 0:
-                return None
-            else:
-                raise Exception('math element with more than 1 child')
-        elif elem.tag == MathML.semantics:
-            children = list(elem)
-            if len(children) >= 1:
-                return cls.parse_from_mathml(children[0])
-            elif len(children) == 0:
-                return None
-        elif elem.tag == MathML.mstyle:
-            children = list(elem)
-            if len(children) >= 1:
-                return cls.parse_from_mathml(children[0])
-            elif len(children) == 0:
-                return None
-        elif (elem.tag == MathML.mrow) or (elem.tag == MathML.mpadded):
-            children_map = filter(lambda x: not ignore_tag(x), list(map(cls.parse_from_mathml, elem)))
+        def infer_mrow(elem,children):
+            """
+            treat list of children like non-parenthesized mrow
+            """
+            if "PreScript" in children: # do not alter a list that is inside <mmultiscript>
+                return(children)
+            children_map = filter(lambda x: not ignore_tag(x), children)
             children = list(children_map)
             if len(children) > 0:
                 # handle parenthesized sub-expressions (FWT)
                 if (len(children) > 1 and (children[0].tag in '({|∥' or children[0].tag == "&lsqb;")):
                 #    and (children[-1].tag in ')}|∥' or children[-1].tag == "&rsqb;")):  # bracketed expression: treat as matrix
-                    return cls.list2matrix(children , ',', elem)
+                    return cls.list2matrix(children, ',', elem)
                 else: # just eliminate mrow and connect its children
                     elem = children[0]
                     for i in range(1,len(children)):
@@ -480,6 +548,64 @@ class MathSymbol:
                     return children[0]
             else:
                 return None
+
+        if not elem.tag.startswith('{'): # handle missing namespace declaration (FWT) -- should be reported as warning!
+            elem.tag = MathML.namespace+elem.tag
+
+        if elem.tag == MathML.semantics:
+            children = list(elem)
+            if len(children) >= 1:
+                return cls.parse_from_mathml(children[0])
+            else:
+                return None
+
+        elif elem.tag == MathML.mn:
+            content = get_value(elem)
+            return cls('N!' + content if content != '' else 'W!',mathml=[elem])
+        elif elem.tag == MathML.mo:  # future: improve representation (and equivalences) by recognizing and preserving fence="true" and separator="true"
+            return cls(get_value(elem),mathml=[elem])
+        elif elem.tag == MathML.mi:
+            content = get_value(elem)
+            return cls('V!' + content if content != '' else 'W!',mathml=[elem])
+        elif (elem.tag == MathML.mtext) or (elem.tag == MathML.ms):
+            content = get_value(elem)
+            return cls('T!' + content if content != '' else 'W!',mathml=[elem])  # to prevent accidental mis-typing
+        elif elem.tag == MathML.mspace:
+            return cls('W!',mathml=[elem])
+
+        elif (elem.tag == MathML.math) or (elem.tag == MathML.mrow)\
+          or (elem.tag == MathML.mstyle) or (elem.tag == MathML.mpadded)\
+          or (elem.tag == MathML.msrow) or (elem.tag == MathML.mscarries)\
+          or (elem.tag == MathML.maction):
+            return infer_mrow(elem,list(map(cls.parse_from_mathml, elem)))
+        elif elem.tag == MathML.mfrac:
+            children = list(map(cls.parse_from_mathml, elem))
+            if not ensure(children,2): # should never happen
+                return None
+            else:
+                return cls('F!',mathml=[elem],over=children[0],under=children[1])
+        elif elem.tag == MathML.msqrt:
+            children = list(map(cls.parse_from_mathml, elem))
+            root = cls('R!',mathml=[elem])
+            elem = infer_mrow(elem,children)
+            if elem:
+                root.within = elem
+            return root
+        elif elem.tag == MathML.mroot:
+            children = list(map(cls.parse_from_mathml, elem))
+            if not ensure(children,2): # should never happen
+                return None
+            else:
+                return cls('R!',mathml=[elem],pre_above=children[1],within=children[0])
+        elif elem.tag == MathML.merror:
+            children = list(map(cls.parse_from_mathml, elem))
+            root = cls('E!',mathml=[elem])
+            elem = infer_mrow(elem,children)
+            if elem is not None:
+                root.within = elem
+            return root
+        elif elem.tag == MathML.none or elem.tag == MathML.mphantom:
+            return cls("W!")
         elif elem.tag == MathML.mfenced:  # treat like mrow (FWT)
             children_map = filter(lambda x: not ignore_tag(x), list(map(cls.parse_from_mathml, elem)))
             children = list(children_map)
@@ -496,47 +622,15 @@ class MathSymbol:
             return cls.list2matrix(row, separators, elem)
         elif elem.tag == MathML.menclose:
             root = cls(elem.attrib.get('notation', 'longdiv'),mathml=[elem])
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) >= 1:   # allowed in standard (FWT)
-                elem = children[0] if children[0] or len(children) == 1 else cls('W!')
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                root.within = children[0]
+            elem = infer_mrow(elem,list(map(cls.parse_from_mathml, elem)))
+            if elem is not None:
+                root.within = elem
             return root
-        elif elem.tag == MathML.mn:
-            content = clean(elem.text)
-            return cls('N!' + content if content != '' else 'W!',mathml=[elem])
-        elif elem.tag == MathML.mo:  # future: improve representation (and equivalences) by recognizing and preserving fence="true" and separator="true"
-            return cls(clean(elem.text),mathml=[elem])
-        elif elem.tag == MathML.mi:
-            content = clean(elem.text)
-            return cls('V!' + content if content != '' else 'W!',mathml=[elem])
-        elif elem.tag == MathML.mtext:
-            content = clean(elem.text)
-            return cls('T!' + content if content != '' else 'W!',mathml=[elem])  # to prevent accidental mis-typing
-        elif elem.tag == MathML.mspace:
-            return cls('W!',mathml=[elem])
+
         elif elem.tag == MathML.msub:
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if not ensure(children,2): # should never happen!
                 return None
-            if len(children) != 2:
-                # raise Exception("msub != 2 children")
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-            if ignore_tag(children[0]):  # in case the base is None ... and ditto for all tags below(FWT)
-                children[0] = cls('W!')         
             # FWT handle operators such as \sum_{i+1}^n so that they parse as "under" and "over"
             if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
                 if children[0].next or children[0].below:  # might have a sub on a sub: {x_y}_z, but not necessarily associative
@@ -553,23 +647,8 @@ class MathSymbol:
             return root
         elif elem.tag == MathML.munder: # FWT - split sub from under
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if not ensure(children,2):
                 return None
-            if len(children) != 2:
-                # raise Exception("munder != 2 children")
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-            if ignore_tag(children[0]):
-                children[0] = cls('W!')         
             if children[0].next or children[0].under:  # munder and mover can apply to a whole row rather than a simple symbol
                 root = cls.make_matrix([children[0]],elem)
             else:
@@ -578,23 +657,8 @@ class MathSymbol:
             return root
         elif elem.tag == MathML.msup:
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if not ensure(children,2):
                 return None
-            if len(children) != 2:
-                # raise Exception("msup != 2 children")
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-            if ignore_tag(children[0]):
-                children[0] = cls('W!')
             # FWT handle operators such as \sum_{i+1}^n so that they parse as "under" and "over"
             if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
                 if children[0].next or children[0].above:  # might have a sup on a sup: {x^y}^z, but not necessarily associative
@@ -611,23 +675,8 @@ class MathSymbol:
             return root
         elif elem.tag == MathML.mover: # FWT - split sup from over
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if not ensure(children,2):
                 return None
-            if len(children) != 2:
-                # raise Exception("mover != 2 children")
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-            if ignore_tag(children[0]):
-                children[0] = cls('W!')
             if children[0].next or children[0].over:  # munder and mover can apply to a whole row rather than a simple symbol
                 root = cls.make_matrix([children[0]],elem)
             else:
@@ -636,23 +685,8 @@ class MathSymbol:
             return root
         elif elem.tag == MathML.msubsup:
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if not ensure(children,3):
                 return None
-            if len(children) != 3:
-                # raise Exception("msubsup != 3 children")
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-            if ignore_tag(children[0]):
-                children[0] = cls('W!')
             # FWT handle operators such as \sum_{i+1}^n so that they parse as "under" and "over"
             if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
                 if children[0].next or children[0].below or children[0].above:  # cascaded use can happen
@@ -671,23 +705,8 @@ class MathSymbol:
             return root
         elif elem.tag == MathML.munderover: # split from subsup
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if not ensure(children,3):
                 return None
-            if len(children) != 3:
-                # raise Exception("munderover != 3 children")
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-            if ignore_tag(children[0]):
-                children[0] = cls('W!')
             if children[0].next or children[0].under or children[0].over:  # munder and mover can apply to a whole row rather than a simple symbol
                 root = cls.make_matrix([children[0]],elem)
             else:
@@ -695,78 +714,50 @@ class MathSymbol:
             root.under = children[1]
             root.over = children[2]
             return root
-        elif elem.tag == MathML.msqrt:
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
-                return cls("W!",mathml=[elem])
-            else:
-                root = cls('R!',mathml=[elem])
-                # RZ - square root as single symbol, rather than with a '2'
-				#      for nth-root.
-                elem = children[0] if children[0] or len(children) == 1 else cls('W!')
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                root.within = children[0]
-                return root
-        elif elem.tag == MathML.mroot:
+        elif elem.tag == MathML.mprescripts:
+            return "PreScript"
+        elif elem.tag == MathML.mmultiscripts: #FWT: Future: handle cascading presecripts (like sub and sup above)
+            # base {sub sup}* [prescript {pre-sub pre-sup}*]
             children = list(map(cls.parse_from_mathml, elem))
             if len(children) == 0:
                 return None
-            if len(children) == 2:
-                return cls('R!',mathml=[elem],pre_above=children[1],within=children[0])
-            else:
-                # raise Exception('mroot element with != 2 children')
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-        elif elem.tag == MathML.mfrac:
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
+            if len(children) == 1 and type(children[0]) is list: # mrow or mpadded within mmultiscripts
+                children = children[0]
+            if ignore_tag(children[0]):
+                children[0] = cls('W!') # base must be represented
+            try:
+                prescript = children.index("PreScript")
+            except ValueError: # no PreScript included
+                prescript = len(children)
+            if (prescript % 2 == 0) or (prescript < len(children) and len(children) % 2 == 1): # should never happen!
                 return None
-            if len(children) == 2:
-                return cls('F!',mathml=[elem],over=children[0],under=children[1]) #FWT
-            else:
-                # raise Exception('frac element with != 2 children')
-                # instead of raising an error, treat it like non-parenthesized mrow
-                children_map = filter(lambda x: not ignore_tag(x), children)
-                children = list(children_map)
-                if len(children) == 0:
-                    return None
-                elem = children[0]
-                for i in range(1,len(children)):
-                    while elem.next:
-                        elem = elem.next
-                    elem.next = children[i]
-                return children[0]
-        elif elem.tag == MathML.none or elem.tag == MathML.mphantom:
-            return cls("W!")
-        elif elem.tag == MathML.mtd:
+            if prescript > 1: # sub sup pairs are present
+                sub = children[1] if prescript > 3 or (children[1] and children[1].tag != "W!") else None
+                children[0].below = sub
+                sup = children[2] if prescript > 3 or (children[2] and children[2].tag != "W!") else None
+                children[0].above = sup
+                for i in range(3,prescript,2):
+                    sub.next = children[i] 
+                    sub = sub.next
+                    sup.next = children[i+1] 
+                    sup = sup.next
+            if prescript < len(children)-2:
+                sub = children[prescript+1] if prescript < len(children)-4 or (children[prescript+1] and children[prescript+1].tag != "W!") else None
+                children[0].pre_below = sub
+                sup = children[prescript+2] if prescript < len(children)-4 or (children[prescript+2] and children[prescript+2].tag != "W!") else None
+                children[0].pre_above = sup
+                for i in range(prescript+3,len(children),2):
+                    sub.next = children[i] 
+                    sub = sub.next
+                    sup.next = children[i+1]
+                    sup = sup.next
+            return children[0]
+
+        elif (elem.tag == MathML.mtable)\
+          or (elem.tag == MathML.mstack) or (elem.tag == MathML.mlongdiv): # mlongdiv: separate divisor and result?
             children = list(map(cls.parse_from_mathml, elem))
-            if len(children) > 0 and children[-1].tag == "&comma;":
-                children.pop()   # remove commas between matrix elements (no mrow)
-            root = children[0] if len(children) > 0 and children[0] else cls('W!')
-            elem = root
-            for i in range(1,len(children)):
-                while elem.next:
-                    elem = elem.next
-                elem.next = children[i]
-            while elem.next:
-                if elem.next.tag == "&comma;" and not elem.next.next:
-                    elem.next = elem.next.next   # remove commas between matrix elements (mrow)
-                else:
-                    elem = elem.next
-            return root
-        elif elem.tag == MathML.mtr:
+            return cls.make_matrix(children,elem)
+        elif (elem.tag == MathML.mtr) or (elem.tag == MathML.mlabeledtr):
             children = list(map(cls.parse_from_mathml, elem))
             if len(children) > 0:
                 root = children[0] if children[0] else cls('W!')
@@ -775,43 +766,27 @@ class MathSymbol:
                 return root
             else:
                 return cls('W!')
-        elif elem.tag == MathML.mtable:
+        elif (elem.tag == MathML.mtd) or (elem.tag == MathML.mscarry):
             children = list(map(cls.parse_from_mathml, elem))
-            return cls.make_matrix(children,elem)
-        elif elem.tag == MathML.mprescripts:
-            return "PreScript"
-        elif elem.tag == MathML.mmultiscripts: #FWT: Future: handle cascading presecripts (like sub and sup above)
-            # base {sub sup}* [prescript {pre-sub pre-sup}*]
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
-                return None
-            if ignore_tag(children[0]):
-                children[0] = cls('W!') # base must be represented
-            try:
-                prescript = children.index("PreScript")
-            except ValueError: # no PreScript included
-                prescript = len(children)
-            if prescript > 1: # sub sup pairs are present
-                sub = children[1] if prescript > 3 or (children[1] and children[1].tag != "W!") else None
-                children[0].below = sub
-                sup = children[2] if prescript > 3 or (children[2] and children[2].tag != "W!") else None
-                children[0].above = sup
-                for i in range(3,prescript,2):
-                    sub.next = children[i] if prescript > i+2 or (children[i] and children[i].tag != "W!") else None
-                    sub = sub.next
-                    sup.next = children[i+1] if prescript > i+2 or (children[i+1] and children[i+1].tag != "W!") else None
-                    sup=sup.next
-            if prescript < len(children)-2:
-                sub = children[prescript+1] if prescript < len(children)-4 or (children[prescript+1] and children[prescript+1].tag != "W!") else None
-                children[0].pre_below = sub
-                sup = children[prescript+2] if prescript < len(children)-4 or (children[prescript+2] and children[prescript+2].tag != "W!") else None
-                children[0].pre_above = sup
-                for i in range(prescript+3,len(children),2):
-                    sub.next = children[i] if len(children) < i+2 or (children[i] and children[i].tag != "W!") else None
-                    sub = sub.next
-                    sup.next = children[i+1] if len(children) < i+2 or (children[i+1] and children[i+1].tag != "W!") else None
-                    sup=sup.next
-            return children[0]
+            if len(children) > 0 and children[-1] is not None and children[-1].tag == "&comma;":
+                children.pop()   # remove commas between matrix elements (no mrow)
+            root = children[0] if len(children) > 0 and children[0] is not None else cls('W!')
+            elem = root
+            for i in range(1,len(children)):
+                while elem.next:
+                    elem = elem.next
+                elem.next = children[i]
+            while elem.next:
+                if elem.next.tag == "&comma;" and not elem.next.next:
+                    elem.next = None   # remove commas between matrix elements (mrow)
+                else:
+                    elem = elem.next
+            return root
+        elif elem.tag == MathML.malignmark or elem.tag == MathML.maligngroup:
+            return None
+        elif elem.tag == MathML.msline:
+            return cls('=') # summation line in an mstack
+
         elif elem.tag ==MathML.mqvar or elem.tag == MathML.mqvar2:
             # added the case where name is given as text within tag instead of attribute (KMD)
             if 'name' in elem.attrib:
@@ -819,10 +794,6 @@ class MathSymbol:
             else:
                 var_name = clean(elem.text)
             return cls('?'+var_name,mathml=[elem])
-        elif elem.tag == MathML.merror:
-            # Handle errors from conversion tools without crashing (KMD)
-            inner_text = clean(elem.text)
-            return cls('E!' + inner_text)
         else:
             raise UnknownTagException(elem.tag)
 

@@ -82,13 +82,16 @@ class MathExtractor:
     close_tag = re.compile("</(?!mws:qvar)"+namespace, re.DOTALL)    # but keep qvar namespace
 
     @classmethod
-    def math_tokens(cls, content, with_id=False):
+    def math_tokens(cls, content, in_context=False, with_id=False):
         """
         extract Math expressions from XML (incl. HTML) file
         
         param content: XML document
         type  content: string
         
+        param (in_context): whether to include text fragments as well (even numbered elements are math)
+        type  (in_context): boolean
+
         param (with_id): whether to include the math formula id, if present
         type  (with_id): boolean
 
@@ -96,7 +99,11 @@ class MathExtractor:
         rtype:  list(string) where each string is a MathML expr; each is preceded by formula id if with_id=True
         """
 
-        exprs = cls.math_pattern.findall(content)
+        if in_context:
+            pieces = cls.math_pattern.split(content)  # include surrounding text
+            contexts = pieces[0::4] # each math piece uses 3 slots
+            # print("Number of contexts detected: "+ str(len(contexts)))
+        exprs = cls.math_pattern.findall(content) # just the math expressions
         # print("Number of formulas detected: "+ str(len(exprs)))
         math = []
 
@@ -108,7 +115,7 @@ class MathExtractor:
                 math_expr = cls.open_tag.sub("<",math_expr)
                 math_expr = math_expr.replace("<Math ","<math ").replace("</Math>","</math>")
 
-                # print("Revised token = ",token,file=stderr)
+                # print("Revised token = ",math_expr,file=stderr)
                 # print("id = "+formula_id,file=stderr)
                 if with_id:
                     math.append(formula_id)
@@ -120,7 +127,13 @@ class MathExtractor:
                     math.append("") # TODO: handle other latex delimiters
                 math.append(LatexToMathML.convert_to_mathml(tex))           
 
-        return math
+        if in_context:
+            pieces = contexts + math # make a list of the right length
+            pieces[::2] = contexts
+            pieces[1::2] = math
+            return pieces
+        else:
+            return math
 
 
     @classmethod
@@ -138,7 +151,10 @@ class MathExtractor:
         #print("MathML: " + tree)
         
         # ensure that the default namespace is specified (assumes MathML)
-        math_expr = cls.math_tokens(tree)[0]
+        math_expr = cls.math_tokens(tree)
+        if len(math_expr) == 0:
+            return None
+        math_expr = math_expr[0]  # pick off the first or only expression
 
         math_root = ET.fromstring(math_expr)
 ##        print("parse_from_mathml tree: " + ET.tostring(xml_root,encoding="unicode"))

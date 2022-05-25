@@ -19,7 +19,7 @@
 
     Contact:
         - Dallas Fraser, dallas.fraser.waterloo@gmail.com
-    Modified by Frank Tompa, 2021
+    Modified by Frank Tompa, 20expand21
     Packaged with mathtuples. Contact:
         - Frank Tompa, fwtompa@uwaterloo.ca
 """
@@ -36,58 +36,47 @@ ROOTPATH = os.path.dirname(os.path.abspath(__file__))
 
 try:
     from mathtuples.convert import convert_math_expression,\
-                                check_node,\
-                                check_wildcard,\
+                                check_wildcard, make_wild,\
                                 determine_node,\
                                 expand_nodes_with_location,\
                                 expand_node_with_wildcards,\
                                 EDGE_PAIR_NODE, COMPOUND_NODE, \
                                 EOL_NODE, TERMINAL_NODE, SYMBOL_PAIR_NODE,\
+                                DUPLICATE_NODE, LONG_NODE, ABBREVIATED_NODE,\
                                 WILDCARD_MOCK, START_TAG, END_TAG,\
-                                REPETITION_NODE
+                                INFINITE_DEPTH, MAX_EOL_HEIGHT, MAX_DUP
     from mathtuples.mathsymbol import REP_TAG
 except ImportError:
     from convert import convert_math_expression,\
-                                check_node,\
-                                check_wildcard,\
+                                check_wildcard, make_wild,\
                                 determine_node,\
                                 expand_nodes_with_location,\
                                 expand_node_with_wildcards,\
                                 EDGE_PAIR_NODE, COMPOUND_NODE, \
                                 EOL_NODE, TERMINAL_NODE, SYMBOL_PAIR_NODE,\
+                                DUPLICATE_NODE, LONG_NODE, ABBREVIATED_NODE,\
                                 WILDCARD_MOCK, START_TAG, END_TAG,\
-                                REPETITION_NODE
+                                INFINITE_DEPTH, MAX_EOL_HEIGHT, MAX_DUP
     from mathsymbol import REP_TAG
 
 
 def convert_test(mathml,
-                            window_size=1,
-                            symbol_pairs=True,
-                            terminal_symbols=False,
-                            compound_symbols=False,
-                            location=False,
-                            eol=False,
-                            edge_pairs=False,
-                            unbounded=False,
-                            shortened=False,
-                            repetitions=False,
-                            synonyms=False):
-    """Use True as default value for symbol_pairs and use False 
-       as default value for all fields regardless of actual (optimal) defaults
+               synonyms=False,
+               dups="",
+               wild_dups="",
+               window_size=1,
+               loc_info={SYMBOL_PAIR_NODE: 1},
+               anchors=[]):
+    """Use 1 as default value for symbol_pairs and use 0 
+       as default value for other fields regardless of actual (optimal) defaults
     """
-    return convert_math_expression(mathml,
-                            window_size=window_size,
-                            symbol_pairs=symbol_pairs,
-                            terminal_symbols=terminal_symbols,
-                            compound_symbols=compound_symbols,
-                            location=location,
-                            eol=eol,
-                            edge_pairs=edge_pairs,
-                            unbounded=unbounded,
-                            shortened=shortened,
-                            repetitions=repetitions,
-                            synonyms=synonyms)
-
+    return convert_math_expression("test",1,mathml,
+               synonyms=synonyms,
+               dups=dups,
+               wild_dups=wild_dups,
+               window_size=window_size,
+               loc_info=loc_info,
+               anchors=anchors)
 class TestBase(unittest.TestCase):
     def loadFile(self, math_file):
         if os.name == WINDOWS:
@@ -153,32 +142,32 @@ class TestPmmlExtraction(TestBase):
 </m:math>
                       """
         self.expect = [START_TAG,
-                  """#(v!x,+,n,-)#""",
                   """#(v!x,+,n)#""",
-                  """#(*,+,n,-)#""",
-                  """#(*,+,n)#""",
-                  """#(v!x,*,n,-)#""",
-                  """#(v!x,*,n)#""",
-                  """#(v!x,*,nn,-)#""",
+                  """#(v!x,+,n,-)#""",
+                  """#(?v,+,n)#""",
+                  """#(?v,+,n,-)#""",
+                  """#(v!x,?o,n)#""",
+                  """#(v!x,?o,n,-)#""",
                   """#(v!x,*,nn)#""",
-                  """#(+,*,n,n)#""",
+                  """#(v!x,*,nn,-)#""",
                   """#(+,*,n)#""",
+                  """#(+,*,n,n)#""",
                   END_TAG]
 
     def testPmmlMain(self):
         results = convert_test(self.mathml1,
-                                          terminal_symbols=True,
-                                          location=True,
-                                          unbounded=True,
-                                          synonyms=True)
+                               loc_info = {SYMBOL_PAIR_NODE: 99,
+                                           TERMINAL_NODE: 99,
+                                           LONG_NODE: 99},
+                               synonyms = True)
         self.assertEqual(" ".join(self.expect), results)
 
     def testPmmlNested(self):
         results = convert_test(self.mathml2,
-                                          terminal_symbols=True,
-                                          location=True,
-                                          unbounded=True,
-                                          synonyms=True)
+                               loc_info = {SYMBOL_PAIR_NODE: 99,
+                                           TERMINAL_NODE: 99,
+                                           LONG_NODE: 99},
+                               synonyms = True)
         self.assertEqual(" ".join(self.expect), results)
 
 
@@ -192,7 +181,7 @@ class TestSymbolPairs(TestBase):
         pass
 
     def testConvert(self):
-        results = convert_test(self.mathml, symbol_pairs=False)
+        results = convert_test(self.mathml, loc_info={})
         expect = [START_TAG,
                   END_TAG]
         self.log(results)
@@ -200,8 +189,7 @@ class TestSymbolPairs(TestBase):
 
     def testConvertNotFalse(self):
         results = convert_test(self.mathml,
-                                          symbol_pairs=False,
-                                          eol=True)
+                               loc_info = {EOL_NODE: 1})
         expect = [START_TAG,
                   END_TAG]
         self.log(results)
@@ -211,8 +199,7 @@ class TestSymbolPairs(TestBase):
         file = os.path.join(ROOTPATH, "testFiles", "test_edge_pair.xml")
         mathml = self.loadFile(file)
         results = convert_test(mathml,
-                                          symbol_pairs=False,
-                                          edge_pairs=True)
+                              loc_info = {EDGE_PAIR_NODE: 1})
         expect = [START_TAG,
                   """#(n,a,v!k)#""",
                   """#(n,n,/)#""",
@@ -229,7 +216,7 @@ class TestSymbolPairs(TestBase):
 class TestExpandLocation(TestBase):
     def setUp(self):
         self.debug = True
-        self.file = os.path.join(ROOTPATH, "testFiles", "test_wildcard_1.xml")
+        self.file = os.path.join(ROOTPATH, "testFiles", "test_wildcard_2.xml")
         self.mathml = self.loadFile(self.file)
 
     def tearDown(self):
@@ -239,37 +226,87 @@ class TestExpandLocation(TestBase):
         file = os.path.join(ROOTPATH, "testFiles", "test_edge_pair.xml")
         mathml = self.loadFile(file)
         results = convert_test(mathml,
-                                          location=True)
+                               loc_info = {SYMBOL_PAIR_NODE: 99})
         expect = [START_TAG,
-                  """#(v!w,m!()1x2,n,-)#""",
                   """#(v!w,m!()1x2,n)#""",
-                  """#(m!()1x2,gt,n,n)#""",
+                  """#(v!w,m!()1x2,n,-)#""",
                   """#(m!()1x2,gt,n)#""",
-                  """#(gt,n!2,n,nn)#""",
+                  """#(m!()1x2,gt,n,n)#""",
                   """#(gt,n!2,n)#""",
-                  """#(n!2,/,n,nnn)#""",
+                  """#(gt,n!2,n,nn)#""",
                   """#(n!2,/,n)#""",
-                  """#(/,v!k,n,nnnn)#""",
+                  """#(n!2,/,n,nnn)#""",
                   """#(/,v!k,n)#""",
-                  """#(v!k,v!ε,a,nnnnn)#""",
+                  """#(/,v!k,n,nnnn)#""",
                   """#(v!k,v!ε,a)#""",
-                  """#(n!2,v!k,a,nnn)#""",
+                  """#(v!k,v!ε,a,nnnnn)#""",
                   """#(n!2,v!k,a)#""",
-                  """#(m!()1x2,n!2,w,n)#""",
+                  """#(n!2,v!k,a,nnn)#""",
                   """#(m!()1x2,n!2,w)#""",
-                  """#(n!2,v!k,e,nw)#""",
+                  """#(m!()1x2,n!2,w,n)#""",
                   """#(n!2,v!k,e)#""",
+                  """#(n!2,v!k,e,nw)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testExpandLocation2(self):
         nodes_list = [('m!()1x1', '?w', 'n', "-")]
-        result = expand_nodes_with_location(nodes_list)
-        self.assertEqual(len(result), 2)
-        expect = [('m!()1x1', '?w', 'n', '-'),
-                  ('m!()1x1', '?w', 'n')]
-        self.assertEqual(result, expect)
+        result = expand_nodes_with_location(nodes_list,{SYMBOL_PAIR_NODE: 99})
+        expect = [('m!()1x1', '?w', 'n'),
+                  ('m!()1x1', '?w', 'n', '-')]
+        self.assertEqual(expect, result)
+
+    def testAnchors(self):
+        results = convert_test(self.mathml,
+                               loc_info = {SYMBOL_PAIR_NODE: 99, TERMINAL_NODE: 99, DUPLICATE_NODE: 99},
+                               anchors = ["=","?"], wild_dups = "W")
+        expect = [START_TAG,
+                  """#(v!π,=,n)#""",
+                  """#(v!π,=,n,-)#""",
+                  """#(=,v!a,n)#""",
+                  """#(=,v!a,n,n)#""",
+                  """#(v!a,m!()1x1,n)#""",
+                  """#(v!a,m!()1x1,n,-)#""",
+                  """#(m!()1x1,*,w)#""",
+                  """#(m!()1x1,*,w,n)#""",
+                  """#(*,+,n)#""",
+                  """#(*,+,n,nw)#""",
+                  """#(+,v!c,n)#""",
+                  """#(+,v!c,n,nwn)#""",
+                  """#(v!c,!0)#""",
+                  """#(v!c,!0,nwnn)#""",
+                  """#(v!π,*,a)#""",
+                  """#(v!π,*,a,-)#""",
+                  """#{*,nw,a}#""",
+                  """#{*,nw,a,-}#""",
+                  """#(v!π,*,b)#""",
+                  """#(v!π,*,b,-)#""",
+                  END_TAG]
+        self.log(results)
+        self.assertEqual(" ".join(expect), results)
+
+    def testExpandLocationLimited(self):
+        file = os.path.join(ROOTPATH, "testFiles", "test_edge_pair.xml")
+        mathml = self.loadFile(file)
+        results = convert_test(mathml,
+                               loc_info = {SYMBOL_PAIR_NODE: 3})
+        expect = [START_TAG,
+                  """#(v!w,m!()1x2,n)#""",
+                  """#(v!w,m!()1x2,n,-)#""",
+                  """#(m!()1x2,gt,n)#""",
+                  """#(m!()1x2,gt,n,n)#""",
+                  """#(gt,n!2,n)#""",
+                  """#(n!2,/,n)#""",
+                  """#(/,v!k,n)#""",
+                  """#(v!k,v!ε,a)#""",
+                  """#(n!2,v!k,a)#""",
+                  """#(m!()1x2,n!2,w)#""",
+                  """#(m!()1x2,n!2,w,n)#""",
+                  """#(n!2,v!k,e)#""",
+                  END_TAG]
+        self.log(results)
+        self.assertEqual(" ".join(expect), results)
 
 
 class TestWildcards(TestBase):
@@ -282,18 +319,20 @@ class TestWildcards(TestBase):
         pass
 
     def testConvertEOL(self):
-        results = convert_test(self.mathml, terminal_symbols=True,location=True,symbol_pairs=False)
+        results = convert_test(self.mathml,
+                               loc_info = {TERMINAL_NODE: 99})
         expect = [START_TAG,
-                  """#(v!c,!0,3n1w2n)#""",
                   """#(v!c,!0)#""",
+                  """#(v!c,!0,3n1w2n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testConvertStandard(self):
         results = convert_test(self.mathml,
-                                          terminal_symbols=True,
-                                          compound_symbols=True)
+                               loc_info = {SYMBOL_PAIR_NODE: 1,
+                                           COMPOUND_NODE: 1,
+                                           TERMINAL_NODE: 1})
         expect = [START_TAG,
                   """#(v!π,[n,a,b])#""",
                   """#(v!π,=,n)#""",
@@ -318,26 +357,26 @@ class TestDetermineNode(TestBase):
         pass
 
     def testDetermineNode(self):
-        self.assertEqual(determine_node(('m!()1x1', '?w', 'n', "-")),
+        self.assertEqual(determine_node(('M!()1x1', '?W', 'n', "-")),
                          SYMBOL_PAIR_NODE)
-        self.assertEqual(determine_node(('m!()1x1', '?w', "-")),
-                         SYMBOL_PAIR_NODE)
-        self.assertEqual(determine_node(('n!0', '!0', "-")),
+        self.assertEqual(determine_node(('M!()1x1', '?W', "-")),
+                         LONG_NODE)
+        self.assertEqual(determine_node(('N!0', '!0', "-")),
                          TERMINAL_NODE)
-        self.assertEqual(determine_node(('n!0', '!0', "n", "-")),
+        self.assertEqual(determine_node(('N!0', '!0', "n", "-")),
                          EOL_NODE)
         self.assertEqual(determine_node(('v!α', "[n,b]", "-")),
                          COMPOUND_NODE)
-        self.assertEqual(determine_node(('n', 'b', 'v!y', "-")),
+        self.assertEqual(determine_node(('n', 'b', 'V!y', "-")),
                          EDGE_PAIR_NODE)
-        self.assertEqual(determine_node(('n', 'n', 'v!y', "-")),
+        self.assertEqual(determine_node(('n', 'n', 'V!y', "-")),
                          EDGE_PAIR_NODE)
-        self.assertEqual(determine_node((REP_TAG, 'v!y', 'nn')),
-                         REPETITION_NODE)
-        self.assertEqual(determine_node((REP_TAG, 'v!y', 'nn', 'a')),
-                         REPETITION_NODE)
-        self.assertEqual(determine_node((REP_TAG, 'v!y', 'nn', 'a', 'nnn')),
-                         REPETITION_NODE)
+        self.assertEqual(determine_node((REP_TAG, 'V!y', 'nn')),
+                         DUPLICATE_NODE)
+        self.assertEqual(determine_node((REP_TAG, 'V!y', 'nn', 'a')),
+                         DUPLICATE_NODE)
+        self.assertEqual(determine_node((REP_TAG, 'V!y', 'nn', 'a', 'nnn')),
+                         DUPLICATE_NODE)
 
 
 class TestSynonym(TestBase):
@@ -353,55 +392,90 @@ class TestSynonym(TestBase):
 
     def testExpandNodeWithWildcards(self):
         # symbol pair with wildcard
-        expect = [('m!()1x1', '?w', 'n')]
-        result = expand_node_with_wildcards(('m!()1x1', '?w', 'n'))
+        expect = [('M!()1x1', WILDCARD_MOCK,'n', '-')]
+        result = expand_node_with_wildcards(('M!()1x1', '?a', 'n', '-'),"","",True)
         self.log(result)
-        self.assertEqual(result, expect)
+        self.assertEqual(expect, result)
 
         # normal symbol pair
-        expect = [('m!()1x1', 'n!1', 'n', "-"),
-                  (WILDCARD_MOCK, 'n!1', 'n', "-"),
-                  ('m!()1x1', WILDCARD_MOCK, 'n', "-"),
+        expect = [('M!()1x1', 'N!1', 'n', "-"),
+                  ('??M', 'N!1', 'n', "-"),
+                  ('M!()1x1', '??N', 'n', "-"),
                   ]
-        result = expand_node_with_wildcards(('m!()1x1', 'n!1', 'n', "-"))
+        result = expand_node_with_wildcards(('M!()1x1', 'N!1', 'n', "-"),"","",True)
         self.log(result)
-        self.assertEqual(result, expect)
+        self.assertEqual(expect, result)
+
+        # normal symbol pair
+        expect = [('M!()1x1', 'N!1', 'n', "-"),
+                  ('??M', 'N!1', 'n', "-"),
+                  ('M!()1x1', '??N', 'n', "-"),
+                  ]
+        result = expand_node_with_wildcards(('M!()1x1', 'N!1', 'n', "-"),"","",True)
+        self.log(result)
+        self.assertEqual(expect, result)
 
         # terminal symbol
-        result = expand_node_with_wildcards(('n!0', '!0', "-"))
+        result = expand_node_with_wildcards(('N!0', '!0', "-"),"","",True)
         self.log(result)
-        expect = [('n!0', '!0', "-")]
-        self.assertEqual(result, expect)
+        expect = [('N!0', '!0', "-")]
+        self.assertEqual(expect, result)
 
         # eol symbol
-        result = expand_node_with_wildcards(('n!0', '!0', "n", "-"))
-        expect = [('n!0', '!0', "n", "-")]
+        result = expand_node_with_wildcards(('N!0', '!0', "n", "-"),"","",True)
+        expect = [('N!0', '!0', "n", "-")]
         self.log(result)
-        self.assertEqual(result, expect)
+        self.assertEqual(expect, result)
 
         # compound symbol
-        expect = [('v!α', "[n,b]", "-"),
-                  (WILDCARD_MOCK, "[n,b]", "-")]
-        result = expand_node_with_wildcards(('v!α', "[n,b]", "-"))
+        expect = [('V!α', "[n,b]", "-"),
+                  ('??V', "[n,b]", "-")]
+        result = expand_node_with_wildcards(('V!α', "[n,b]", "-"),"","",True)
         self.log(result)
-        self.assertEqual(result, expect)
+        self.assertEqual(expect, result)
+
+        # repetition node
+        expect = [(REP_TAG, '??V', 'nn', 'a')]
+        result = expand_node_with_wildcards((REP_TAG, 'V!y', 'nn', 'a'),"","",True)
+        self.log(result)
+        self.assertEqual(expect, result)
+
+        # repetition node
+        expect = [(REP_TAG, '??V', 'nn', 'a')]
+        result = expand_node_with_wildcards((REP_TAG, 'V!y', 'nn', 'a'),"","V",False)
+        self.log(result)
+        self.assertEqual(expect, result)
+
+        # repetition node
+        expect = [(REP_TAG, 'V!y', 'nn', 'a')]
+        result = expand_node_with_wildcards((REP_TAG, 'V!y', 'nn', 'a'),"V","",False)
+        self.log(result)
+        self.assertEqual(expect, result)
+
+        # repetition node
+        expect = [(REP_TAG, 'V!y', 'nn', 'a'),
+                  (REP_TAG, '??V', 'nn', 'a')]
+        result = expand_node_with_wildcards((REP_TAG, 'V!y', 'nn', 'a'),"V","V",False)
+        self.log(result)
+        self.assertEqual(expect, result)
 
     def testConvertWithSynonyms(self):
         results = convert_test(self.mathml,
-                                          compound_symbols=True,
-                                          edge_pairs=True,
-                                          terminal_symbols=True,
-                                          eol=True,
-                                          synonyms=True)
+                               loc_info = {SYMBOL_PAIR_NODE: 1,
+                                           COMPOUND_NODE: 1,
+                                           EDGE_PAIR_NODE: 1,
+                                           TERMINAL_NODE: 1,
+                                           EOL_NODE: 1},
+                               synonyms=True)
         expect = [START_TAG,
                   """#(*,[n,b])#""",
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n)#""",
-                  """#(*,n!1,n)#""",
-                  """#(=,*,n)#""",
+                  """#(*,ast,n)#""",
+                  """#(ast,n!1,n)#""",
+                  """#(?o,n!1,n)#""",
+                  """#(ast,?n,n)#""",
                   """#(n!1,!0)#""",
-                  """#(n,n,=)#""",
-                  """#(n,n,*)#""",
+                  """#(n,n,ast)#""",
+                  """#(n,n,?o)#""",
                   """#(b,n,*)#""",
                   END_TAG]
         self.log(results)
@@ -409,50 +483,52 @@ class TestSynonym(TestBase):
 
         # test the other file
         results = convert_test(self.mathml2,
-                                          compound_symbols=True,
-                                          edge_pairs=True,
-                                          terminal_symbols=True,
-                                          eol=True,
-                                          synonyms=True)
+                               loc_info = {SYMBOL_PAIR_NODE: 1,
+                                           COMPOUND_NODE: 1,
+                                           EDGE_PAIR_NODE: 1,
+                                           TERMINAL_NODE: 1,
+                                           EOL_NODE: 1},
+                               synonyms=True)
         expect = [START_TAG,
                   """#(v!α,[n,b])#""",
-                  """#(*,[n,b])#""",
+                  """#(?v,[n,b])#""",
                   """#(v!α,m!()1x1,n)#""",
-                  """#(*,m!()1x1,n)#""",
-                  """#(v!α,*,n)#""",
+                  """#(?v,m!()1x1,n)#""",
+                  """#(v!α,?m,n)#""",
                   """#(m!()1x1,[n,w])#""",
-                  """#(*,[n,w])#""",
+                  """#(?m,[n,w])#""",
                   """#(m!()1x1,=,n)#""",
-                  """#(*,=,n)#""",
-                  """#(m!()1x1,*,n)#""",
+                  """#(?m,=,n)#""",
+                  """#(m!()1x1,?o,n)#""",
                   """#(=,v!y,n)#""",
-                  """#(*,v!y,n)#""",
-                  """#(=,*,n)#""",
+                  """#(?o,v!y,n)#""",
+                  """#(=,?v,n)#""",
                   """#(v!y,n!0,b)#""",
-                  """#(*,n!0,b)#""",
-                  """#(v!y,*,b)#""",
+                  """#(?v,n!0,b)#""",
+                  """#(v!y,?n,b)#""",
                   """#(n!0,!0)#""",
                   """#(n,b,v!y)#""",
-                  """#(n,b,*)#""",
+                  """#(n,b,?v)#""",
                   """#(n,n,=)#""",
-                  """#(n,n,*)#""",
+                  """#(n,n,?o)#""",
                   """#(m!()1x1,v!x,w)#""",
-                  """#(*,v!x,w)#""",
-                  """#(m!()1x1,*,w)#""",
+                  """#(?m,v!x,w)#""",
+                  """#(m!()1x1,?v,w)#""",
                   """#(v!x,n!0,b)#""",
-                  """#(*,n!0,b)#""",
-                  """#(v!x,*,b)#""",
+                  """#(?v,n!0,b)#""",
+                  """#(v!x,?n,b)#""",
                   """#(n!0,!0)#""",
                   """#(w,b,v!x)#""",
-                  """#(w,b,*)#""",
+                  """#(w,b,?v)#""",
                   """#(n,n,m!()1x1)#""",
-                  """#(n,n,*)#""",
+                  """#(n,n,?m)#""",
                   """#(v!α,n!0,b)#""",
-                  """#(*,n!0,b)#""",
-                  """#(v!α,*,b)#""",
+                  """#(?v,n!0,b)#""",
+                  """#(v!α,?n,b)#""",
                   """#(n!0,!0)#""",
                   END_TAG]
         self.log(results)
+        self.maxDiff = None
         self.assertEqual(" ".join(expect), results)
 
 
@@ -463,35 +539,10 @@ class TestWildcardReductionAndCheck(TestBase):
     def tearDown(self):
         pass
 
-    def testCheckNode(self):
-        valid_nodes = [('?w', 'm!()1x1', 'n', '-'),
-                       ('m!()1x1', '?w', 'n', '-'),
-                       ('=', 'v!y', 'n', '-'),
-                       ('v!y', 'n!0', 'b', '-'),
-                       ('m!()1x1', 'v!x', 'w', '-'),
-                       ('v!x', 'n!0', 'b', '-'),
-                       ('v!Î±', 'n!0', 'b', '-'),
-                       ('v!Î±', "['n','b']", '-'),
-                       ('m!()1x1', "['n','w']", '-'),
-                       ('n!0', '!0', '-'),
-                       ('n', 'b', '?w', '-'),
-                       ('n', 'n', '=', '-'),
-                       ('w', 'b', 'v!x', '-'),
-                       ('n', 'n', 'm!()1x1', '-'),
-                       ('n', 'w', 'm!()1x1', '-')]
-        invalid_nodes = [('?v', '!0', '-'),
-                         ('?w', '?w', 'b', '-'),
-                         ("?w", "?w", "b", "nn", '-'),
-                         ("?w", "!0", "n", '-')]
-        for node in valid_nodes:
-            self.assertEqual(check_node(node), True)
-        for node in invalid_nodes:
-            self.assertEqual(check_node(node), False)
-
     def testCheckWildcard(self):
-        self.assertEqual(check_wildcard("?v"), True)
-        self.assertEqual(check_wildcard("n!6"), False)
-        self.assertEqual(check_wildcard("v!x"), False)
+        self.assertEqual(check_wildcard("?V"), True)
+        self.assertEqual(check_wildcard("N!6"), False)
+        self.assertEqual(check_wildcard("V!x"), False)
 
 class TestRepetitions(TestBase):
     def setUp(self):
@@ -507,34 +558,52 @@ class TestRepetitions(TestBase):
         pass
 
     def testRepetitions(self):
-        results = convert_test(self.mathml,repetitions=True,symbol_pairs=False,location=True)
+        results = convert_test(self.mathml,loc_info={DUPLICATE_NODE: 1},
+                               dups="VNOMFRTW")
         expect = [START_TAG,
-                  """#{n!2,ob,ub,nnn}#""",
                   """#{n!2,ob,ub}#""",
-                  """#{v!b,no,o,nn}#""",
                   """#{v!b,no,o}#""",
-                  """#{+,nun,un,nn}#""",
-                  """#{+,nun,un}#""",
-                  """#{n!1,ob,ub,nn}#""",
+                  """#{!,nun,un}#""",
                   """#{n!1,ob,ub}#""",
-                  """#{v!a,nu,u,nn}#""",
                   """#{v!a,nu,u}#""",
-                  """#{f!,n,nn}#""",
                   """#{f!,n}#""",
-                  """#{+,nnun,n}#""",
-                  """#{+,nnun}#""",
-                  """#{+,nun,n}#""",
-                  """#{+,nun}#""",
-                  """#{v!a,nnnu,-}#""",
-                  """#{v!a,nnnu}#""",
-                  """#{v!a,nnu,-}#""",
+                  """#{!,nun}#""",
                   """#{v!a,nnu}#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
+        results = convert_test(self.mathml,loc_info={DUPLICATE_NODE: 99},
+                               dups="VN", wild_dups="VF")
+        expect = [START_TAG,
+                  """#{n!2,ob,ub}#""",
+                  """#{n!2,ob,ub,nnn}#""",
+                  """#{v!b,no,o}#""",
+                  """#{v!b,no,o,nn}#""",
+                  """#{?v,no,o}#""",
+                  """#{?v,no,o,nn}#""",
+                  """#{n!1,ob,ub}#""",
+                  """#{n!1,ob,ub,nn}#""",
+                  """#{v!a,nu,u}#""",
+                  """#{v!a,nu,u,nn}#""",
+                  """#{?v,nu,u}#""",
+                  """#{?v,nu,u,nn}#""",
+                  """#{?f,n}#""",
+                  """#{?f,n,nn}#""",
+                  """#{v!a,nnu}#""",
+                  """#{v!a,nnu,-}#""",
+                  """#{?v,nnu}#""",
+                  """#{?v,nnu,-}#""",
+                  END_TAG]
+        self.log(results)
+        self.maxDiff = None
+        self.assertEqual(" ".join(expect), results)
+
     def testRepeatedWildCards(self):
-        results = convert_test(self.mathml2,repetitions=True)
+        results = convert_test(self.mathml2,
+                               loc_info={SYMBOL_PAIR_NODE: 1,
+                                         DUPLICATE_NODE: 1},
+                               wild_dups="W")
         expect = [START_TAG,
                   """#(v!π,=,n)#""",
                   """#(=,v!a,n)#""",
@@ -550,16 +619,18 @@ class TestRepetitions(TestBase):
         self.assertEqual(" ".join(expect), results)
 
     def testRepeatedSymbolSynonyms(self):
-        results = convert_test(self.mathml3,repetitions=True,synonyms=True,symbol_pairs=False)
+        results = convert_test(self.mathml3,
+                               loc_info={DUPLICATE_NODE: 1},
+                               dups="VN",
+                               wild_dups="VN",
+                               synonyms=True)
         expect = [START_TAG,
                   """#{v!k,nn,a}#""",
-                  """#{*,nn,a}#""",
-                  """#{v!k,nnnn,we}#""",
-                  """#{*,nnnn,we}#""",
+                  """#{?v,nn,a}#""",
                   """#{v!k,nna,we}#""",
-                  """#{*,nna,we}#""",
+                  """#{?v,nna,we}#""",
                   """#{n!2,nn,w}#""",
-                  """#{*,nn,w}#""",
+                  """#{?n,nn,w}#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
@@ -576,7 +647,8 @@ class TestTerminalQuery(TestBase):
 
     def testF1(self):
         self.mathml = self.loadFile(self.f1)
-        results = convert_test(self.mathml, terminal_symbols=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        TERMINAL_NODE: 1})
         self.log(results)
         expect = [START_TAG,
                   """#(v!𝖿𝗏,!0)#""",
@@ -585,7 +657,8 @@ class TestTerminalQuery(TestBase):
 
     def testF2(self):
         self.mathml = self.loadFile(self.f2)
-        results = convert_test(self.mathml, terminal_symbols=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        TERMINAL_NODE: 1})
         self.log(results)
         expect = [START_TAG,
                   """#(v!𝒔,!0)#""",
@@ -603,7 +676,9 @@ class TestMatrix(TestBase):
         pass
 
     def testBase(self):
-        results = convert_test(self.mathml,terminal_symbols=True,compound_symbols=True)
+        results = convert_test(self.mathml,loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                       TERMINAL_NODE: 1,
+                                                       COMPOUND_NODE: 1})
         expect = [START_TAG,
                   """#(v!χ,m!()1x1,n)#""",
                   """#(m!()1x1,[n,w])#""",
@@ -659,8 +734,8 @@ class TestArxivQuery(TestBase):
     def testBase(self):
         results = convert_test(self.mathml)
         expect = [START_TAG,
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n)#""",
+                  """#(*,ast,n)#""",
+                  """#(ast,n!1,n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
@@ -668,71 +743,76 @@ class TestArxivQuery(TestBase):
     def testWindowSize(self):
         results = convert_test(self.mathml, window_size=2)
         expect = [START_TAG,
-                  """#(*,=,n)#""",
+                  """#(*,ast,n)#""",
                   """#(*,n!1,nn)#""",
-                  """#(=,n!1,n)#""",
+                  """#(ast,n!1,n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testEOL(self):
         # height too big
-        results = convert_test(self.mathml, eol=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        EOL_NODE: 1})
         expect = [START_TAG,
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n)#""",
+                  """#(*,ast,n)#""",
+                  """#(ast,n!1,n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testCompoundSymbols(self):
-        results = convert_test(self.mathml, compound_symbols=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        COMPOUND_NODE: 1})
         expect = [START_TAG,
                   """#(*,[n,b])#""",
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n)#""",
+                  """#(*,ast,n)#""",
+                  """#(ast,n!1,n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testTerminalSymbols(self):
-        results = convert_test(self.mathml, terminal_symbols=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        TERMINAL_NODE: 1})
         expect = [START_TAG,
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n)#""",
+                  """#(*,ast,n)#""",
+                  """#(ast,n!1,n)#""",
                   """#(n!1,!0)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testEdgePairs(self):
-        results = convert_test(self.mathml, edge_pairs=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        EDGE_PAIR_NODE: 1})
         expect = [START_TAG,
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n)#""",
-                  """#(n,n,=)#""",
+                  """#(*,ast,n)#""",
+                  """#(ast,n!1,n)#""",
+                  """#(n,n,ast)#""",
                   """#(b,n,*)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testUnbounded(self):
-        results = convert_test(self.mathml, unbounded=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        LONG_NODE: 1})
         expect = [START_TAG,
-                  """#(*,=,n)#""",
+                  """#(*,ast,n)#""",
                   """#(*,n!1,nn)#""",
-                  """#(=,n!1,n)#""",
+                  """#(ast,n!1,n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
 
     def testLocation(self):
-        results = convert_test(self.mathml, location=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 99})
         expect = [START_TAG,
-                  """#(*,=,n,-)#""",
-                  """#(*,=,n)#""",
-                  """#(=,n!1,n,n)#""",
-                  """#(=,n!1,n)#""",
+                  """#(*,ast,n)#""",
+                  """#(*,ast,n,-)#""",
+                  """#(ast,n!1,n)#""",
+                  """#(ast,n!1,n,n)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)
@@ -782,7 +862,8 @@ class TestRandomEquation(TestBase):
 
     def testEOL(self):
         # height too big
-        results = convert_test(self.mathml, eol=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        EOL_NODE: 1})
         expect = [START_TAG,
                   """#(v!α,m!()1x1,n)#""",
                   """#(m!()1x1,=,n)#""",
@@ -796,7 +877,8 @@ class TestRandomEquation(TestBase):
         self.assertEqual(" ".join(expect), results)
 
     def testCompoundSymbols(self):
-        results = convert_test(self.mathml, compound_symbols=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        COMPOUND_NODE: 1})
         expect = [START_TAG,
                   """#(v!α,[n,b])#""",
                   """#(v!α,m!()1x1,n)#""",
@@ -812,7 +894,8 @@ class TestRandomEquation(TestBase):
         self.assertEqual(" ".join(expect), results)
 
     def testTerminalSymbols(self):
-        results = convert_test(self.mathml, terminal_symbols=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        TERMINAL_NODE: 1})
         expect = [START_TAG,
                   """#(v!α,m!()1x1,n)#""",
                   """#(m!()1x1,=,n)#""",
@@ -829,7 +912,8 @@ class TestRandomEquation(TestBase):
         self.assertEqual(" ".join(expect), results)
 
     def testEdgePairs(self):
-        results = convert_test(self.mathml, edge_pairs=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        EDGE_PAIR_NODE: 1})
         expect = [START_TAG,
                   """#(v!α,m!()1x1,n)#""",
                   """#(m!()1x1,=,n)#""",
@@ -847,7 +931,8 @@ class TestRandomEquation(TestBase):
         self.assertEqual(" ".join(expect), results)
 
     def testUnbounded(self):
-        results = convert_test(self.mathml, unbounded=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 1,
+                                                        LONG_NODE: 1})
         expect = [START_TAG,
                   """#(v!α,m!()1x1,n)#""",
                   """#(v!α,v!x,nw)#""",
@@ -870,22 +955,22 @@ class TestRandomEquation(TestBase):
         self.assertEqual(" ".join(expect), results)
 
     def testLocation(self):
-        results = convert_test(self.mathml, location=True)
+        results = convert_test(self.mathml, loc_info = {SYMBOL_PAIR_NODE: 99})
         expect = [START_TAG,
-                  """#(v!α,m!()1x1,n,-)#""",
                   """#(v!α,m!()1x1,n)#""",
-                  """#(m!()1x1,=,n,n)#""",
+                  """#(v!α,m!()1x1,n,-)#""",
                   """#(m!()1x1,=,n)#""",
-                  """#(=,v!y,n,nn)#""",
+                  """#(m!()1x1,=,n,n)#""",
                   """#(=,v!y,n)#""",
-                  """#(v!y,n!0,b,nnn)#""",
+                  """#(=,v!y,n,nn)#""",
                   """#(v!y,n!0,b)#""",
-                  """#(m!()1x1,v!x,w,n)#""",
+                  """#(v!y,n!0,b,nnn)#""",
                   """#(m!()1x1,v!x,w)#""",
-                  """#(v!x,n!0,b,nw)#""",
+                  """#(m!()1x1,v!x,w,n)#""",
                   """#(v!x,n!0,b)#""",
-                  """#(v!α,n!0,b,-)#""",
+                  """#(v!x,n!0,b,nw)#""",
                   """#(v!α,n!0,b)#""",
+                  """#(v!α,n!0,b,-)#""",
                   END_TAG]
         self.log(results)
         self.assertEqual(" ".join(expect), results)

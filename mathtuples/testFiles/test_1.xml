@@ -1,7 +1,7 @@
         <m:math>
           <m:semantics xml:id="m17.1a">
             <m:apply xml:id="m17.1.5" xref="m17.1.5.pmml">
-              <m:eq xml:id="m17.1.3" xref="m17.1.3.pmml"/>
+              <m:times xml:id="m17.1.3" xref="m17.1.3.pmml"/>
               <m:apply xml:id="m17.1.5.1" xref="m17.1.5.1.pmml">
                 <m:csymbol cd="ambiguous" xml:id="m17.1.5.1.1">subscript</m:csymbol>
                 <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="a"/>
@@ -23,10 +23,10 @@
                     <mws:qvar xmlns:mws="http://search.mathweb.org/ns" name="j"/>
                   </m:mrow>
                 </m:msub>
-                <m:mo xml:id="m17.1.3.pmml" xref="m17.1.3">=</m:mo>
+                <m:mo xml:id="m17.1.3.pmml" xref="m17.1.3">*</m:mo>
                 <m:mn xml:id="m17.1.4.pmml" xref="m17.1.4">1</m:mn>
               </m:mrow>
             </m:annotation-xml>
-            <m:annotation encoding="application/x-tex" xml:id="m17.1c">\qvar@construct{a}_{\qvar@construct{i}\qvar@construct{j}}=1</m:annotation>
+            <m:annotation encoding="application/x-tex" xml:id="m17.1c">\qvar@construct{a}_{\qvar@construct{i}\qvar@construct{j}}*1</m:annotation>
           </m:semantics>
         </m:math>

@@ -34,33 +34,60 @@ class MathML:
     """
     namespace = '{http://www.w3.org/1998/Math/MathML}'
     math = namespace + 'math'
+    semantics = namespace + 'semantics'
+
+    # token elements
+    mi = namespace + 'mi'
     mn = namespace + 'mn'
     mo = namespace + 'mo'
-    mi = namespace + 'mi'
     mtext = namespace + 'mtext'
+    mspace = namespace + 'mspace'
+    ms = namespace + 'ms'        # missing
+    mglyph = namespace + 'mglyph'
+
+    # general layout schemata
     mrow = namespace + 'mrow'
+    mfrac = namespace + 'mfrac'
+    msqrt = namespace + 'msqrt'
+    mroot = namespace + 'mroot'
+    mstyle = namespace + 'mstyle'
+    merror = namespace + 'merror'  # To deal with Errors in MathML conversion from tools (KMD)
+    mpadded = namespace + 'mpadded'
+    mphantom = namespace + 'mphantom'
+    mfenced = namespace + 'mfenced'
+    menclose = namespace + 'menclose'
+
+    # Script and Limit Schemata
     msub = namespace + 'msub'
     msup = namespace + 'msup'
     msubsup = namespace + 'msubsup'
-    munderover = namespace + 'munderover'
-    msqrt = namespace + 'msqrt'
-    mroot = namespace + 'mroot'
-    mfrac = namespace + 'mfrac'
-    menclose = namespace + 'menclose'
-    mfenced = namespace + 'mfenced'
-    mover = namespace + 'mover'
     munder = namespace + 'munder'
-    mpadded = namespace + 'mpadded'
-    mphantom = namespace + 'mphantom'
-    none = namespace + 'none'
-    mstyle = namespace + 'mstyle'
-    mspace = namespace + 'mspace'
-    mtable = namespace + 'mtable'
-    mtr = namespace + 'mtr'
-    mtd = namespace + 'mtd'
-    semantics = namespace + 'semantics'
+    mover = namespace + 'mover'
+    munderover = namespace + 'munderover'
     mmultiscripts = namespace + 'mmultiscripts'
     mprescripts = namespace + 'mprescripts'
+    none = namespace + 'none'
+
+    # Tables and Matrices
+    mtable = namespace + 'mtable'
+    mlabeledtr = namespace + 'mlabeledtr'
+    mtr = namespace + 'mtr'
+    mtd = namespace + 'mtd'
+    maligngroup = namespace + 'maligngroup'
+    malignmark = namespace + 'malignmark'
+
+    # Elementary Math Layout
+    mstack = namespace + 'mstack'
+    mlongdiv = namespace + 'mlogdiv'
+    msgroup = namespace + 'msgroup'
+    msrow = namespace + 'msrow'
+    mscarries = namespace + 'mscarries'
+    mscarry = namespace + 'mscarry'
+    msline = namespace + 'msline'
+
+    # Enlivening Expresions
+    maction = namespace + 'maction'
+
+    # NTCIR Wildcards
     mqvar = '{http://search.mathweb.org/ns}qvar'
     mqvar2 = namespace + 'qvar' # for erroneous namespace
-    merror = namespace + 'merror'  # To deal with Errors in MathML conversion from tools (KMD)

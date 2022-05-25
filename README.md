@@ -1,5 +1,6 @@
 # Description of math token creation for Tangent-L
-Frank Tompa, October 2021
+Frank Tompa, March 2022
+(version 2: May 2022)
 
 As a first step to either indexing or querying, and building on the code from Tangent [1] and Tangent-3 [2], this module takes a document and converts all MathML expressions into math features. To this end, convert_math_expression() in convert.py first transforms any MathML expression to a symbol layout tree and then traverses that tree recursively to extract a list of features.
 
@@ -7,91 +8,103 @@ After extensive experimentation, the optimal set of features was found to compri
    1. Symbol pairs with window size 1 (symbols on adjacent nodes in the tree and edge label)
    2. Terminal symbols (leaves of the tree)
    3. Compound symbols (nodes with more than one outedge together with sets of outedge labels)
-   4. Expanded locations (any of the earlier features plus paths to the feature location)
+   4. Duplicate symbols (symbols that are repeated in the formula together with their relative paths)
+   5. Expanded locations (any of the earlier features plus paths to the feature location if fewer than 8 nodes on that path)
+Paths are measured from the root of the tree or from the closest relational (i.e., equality-like) operator.
 
-For example, given the MathML equivalent of _y<sub>i</sub><sup>j</sup> = 1 + x<sup>2</sup>_, the extracted features are represented by the concatenation of the following string representations of math tuples:
+For example, given the MathML equivalent of _y<sub>i</sub><sup>n</sup> = n + x<sup>n</sup>_, the extracted features are represented by the concatenation of the following string representations of math tuples:
  ```
  #(start)#
- #(v!y,=,n)# #(v!y,v!i,b)# #(v!y,v!j,a)# #(=,n!1,n)# #(n!1,+,n)# #(+,n!x)# #(v!x,n!2,a)#
- #(v!i,!0)# #(v!j,!0)# #(n!2,!0)#
+ #(v!y,=,n)# #(v!y,v!i,b)# #(v!y,v!n,a)# #(=,v!n,n)# #(v!n,+,n)# #(+,n!x)# #(v!x,v!n,a)#
+ #(v!i,!0)# #(v!n,!0)# #(v!,!0)#
  #(v!y,[a,b,n])#
- #(v!y,=,n,)# #(v!y,v!i,b,)# #(v!y,v!j,a,)# #(=,n!1,n,n)# #(n!1,+,n,nn)# #(+,n!x,nnn)# #(v!x,n!2,a,nnnn)#
- #(v!i,!0,b)# #(v!j,!0,a)# #(n!2,!0,nnnna)#
+ #{v!n,nna}# #{v!n,a,n}# #{?v,nna}# #{?v,a,n}# 
+ #(v!y,=,n,)# #(v!y,v!i,b,)# #(v!y,v!n,a,)# #(=,v!n,n,n)# #(v!n,+,n,n)# #(+,n!x,nn)# #(v!x,v!n,a,nnn)#
+ #(v!i,!0,b)# #(v!n,!0,a)# #(v!n,!0,nnna)#
  #(v!y,[a,b,n],)#
+ #{v!n,nna,n}# #{v!n,a,n,}# #{?v,nna,n}# #{?v,a,n,}# 
  #(end)#
  ```
-where the first token indicates the start of a formula, the tokens on the next line represent adjacent symbol pairs, the tokens on the fourth line represent terminal symbols, the one on the fifth line represents the sole compound symbol, the ones on the next three lines represent all the previous features with their locations, and the final line signals the end of the formula.
+where the first token indicates the start of a formula, the tokens on the next line represent adjacent symbol pairs, the tokens on the fourth line represent terminal symbols, the one on the fifth line represents the sole compound symbol, the ones on the next line represent duplicate symbols, the ones on the next four lines represent all the previous features with their locations, and the final line signals the end of the formula.
  
 Such text representing the extracted features can be used in place of each mathematical expression found in a document or query. 
 
-Generic wild card symbols may be included in queries, as in the query formula _?A x ?B = y_, where _?A_ and _?B_ can match anything. Wild cards are matched by expanding math tokens at the time of indexing to include their wild card token matches (by calling convert_math_expression() with synonyms=True when indexing). For example, when a symbol pair such as `#(v!y,=,n)#` is generated at index time, two additional tokens `#(*,=,n)#` and `#(v!y,*,n)#` are also generated. Similarly, all compound symbols are also extended to include their wild card equivalents, so `#(v!y,[a,b,n])#` causes `#(*,[a,b,n])#` to be generated as well. (To avoid excessive computation and to save index space, `#(*,*,n)#` is not generated and terminal and symbols are not expanded to their wild card equivalents.)
+Generic wildcard symbols may be included in queries, as in the query formula _?A x ?B = y_, where _?A_ and _?B_ can match anything. Wildcards are matched by expanding math tokens at the time of indexing to include their wildcard token matches (by calling convert_math_expression() with synonyms=True when indexing). For example, when a symbol pair such as `#(v!y,=,n)#` is generated at index time, two additional tokens `#(*,=,n)#` and `#(v!y,*,n)#` are also generated. Similarly, all compound symbols are also extended to include their wildcard equivalents, so `#(v!y,[a,b,n])#` causes `#(*,[a,b,n])#` to be generated as well. (To avoid excessive computation and to save index space, `#(*,*,n)#` is not generated and terminal and symbols are not expanded to their wildcard equivalents.)
 
-Further details can be found in Dallas Fraser's Mmath thesis [4].
-
-Fraser's thesis did not consider capturing a feature that reflects repetitions of symbols. As a result, a search for _x<sup>2</sup> + 3x_ matches _x<sup>2</sup> + 3y_ fairly well, but _y<sup>2</sup> + 3y_ fairly poorly. Even if _x_ is replaced by the wild card variable _?x_, mismatched variables match as well as matched variables. To address this shortfall, a new feature has been added to capture repetitions [5]. 
-
-For every pair of repeated symbols (including variables, operators, numbers, etc.) in an SLT, based on their relative  positions one of the following tuples are generated:
-
-- `#{symbol,p}#` is generated for symbols that reside on the same path from the root of the SLT, where the path between the repeated symbols is represented by _p_. For example the repeated _x_ symbol in _x<sup>2</sup> + 3x_ is encoded as `#{v!x,nnn}#`.
-- `#{symbol,p1,p2}#` is generated for a pair of repeated symbols that reside on different paths from the root of SLT, where _p1_ and _p2_ represent the paths from the nearest common ancestor to each symbol. For example the tuple `#{v!x,a,nn}#` is generated for the repeated _x_ in _2<sup>x</sup>+x_.  
-
-Note that if a symbol appears _k_ times where _k_ > 1, _C(k,2)_ repetition tuples are indexed for that symbol.
- 
-To expand with location, an additional tuple is generated with the path, traversing from the root, to the first symbol or to the closest common ancestor if the repetition occurs in different paths. For example `#{V!x,a,nn,-}#` is additionally generated for _2<sup>x</sup>+x_. 
-
-Note that we use braces `#{...}#` to distinguish tuples representing repeated symbols from all other math tuples, which are enclosed by parentheses `#(...)#`.
-
-Wild card expansion is also applicable to tuples representing repeated symbols. For instance, `#{*,a,nn}#` and (assuming location expansion is requested as well) `#{*,a,nn,-}#` are additionally generated for _2<sup>x</sup>+x_.
+Further details can be found in Dallas Fraser's MMath thesis [4] and in a paper describing experiments for the 2022 ARQMath Lab [5].
 
 1. Nidhin Pattaniyil, Richard Zanibbi: "Combining TF-IDF Text Retrieval with an Inverted Index over Symbol Pairs in Math Expressions: The Tangent Math Search Engine at NTCIR 2014." _NTCIR 2014_.
 2. Richard Zanibbi, Kenny Davila, Andrew Kane, Frank Wm. Tompa: "Multi-Stage Math Formula Search: Using Appearance-Based Similarity Metrics at Scale." _SIGIR 2016_: 145-154.
 3. Dallas J. Fraser, Andrew Kane, Frank Wm. Tompa: "Choosing Math Features for BM25 Ranking with Tangent-L." _DocEng 2018_: 17:1-17:10.
 4. Dallas J. Fraser: _Math Information Retrieval using a Text Search Engine._ Master’s thesis, University of Waterloo, Cheriton School of Computer Science, University of Waterloo (2018).
-5. Yin Ki Ng, Dallas J. Fraser, Besat Kassaie, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Ongoing Viability of Traditional MathIR." _CLEF (Working Notes) 2021_: 63-81.
+5. Andrew R. Kane, Yin Ki Ng, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Doing Better with Less." _CLEF (Working Notes) 2022_.
 
 ## Setup
-After downloading the directory with all files, make that your working directory. Then issue the following two commands:
 - `python3 -m build`
 - `python3 -m pip install dist/mathtuples-1.0-py3-none-any.whl`
-
-For help with installing packages, see (for example) https://packaging.python.org/tutorials/installing-packages/.
 
 ## Testing
   `python3 -m mathtuples.testConvert`
 
 ## Usage
 ```
-  mathtuples.convert.py [-h] [-infile INFILE] [-outfile OUTFILE] [-symbol_pairs]
-                  [-eol] [-compound_symbols] [-terminal_symbols] [-edge_pairs]
-                  [-unbounded] [-shortened] [-synonyms] [-location]
-                  [-window_size [WINDOW_SIZE]]
+convert.py [-h] [-W WINDOW_SIZE] [-S SYMBOL_PAIRS] [-R EDGE_PAIRS] [-T TERMINAL_SYMBOLS] [-E EOL]
+                  [-C COMPOUND_SYMBOLS] [-L LONG] [-A ABBREVIATED] [-D DUPLICATE_NODES] [-docid DOCID] [-a ANCHORS] [-c]
+                  [-d DUPS] [-s] [-w WILD_DUPS]
 
-  optional arguments:
+Convert - MathML file to file with Math Tuples
+
+optional arguments:
   -h, --help            show this help message and exit
-  -infile INFILE, --infile INFILE
-                        The file to read from
-  -outfile OUTFILE, --outfile OUTFILE
-                        The file to output to
-  -symbol_pairs         Do not use symbol pairs
-  -eol                  Use EOL tuples
-  -compound_symbols     Do not use compound symbols
-  -terminal_symbols     Use terminal symbols
-  -edge_pairs           Use edge pairs
-  -unbounded            Symbol pairs should be unbounded
-  -shortened            Unbounded symbol pairs should not include abbreviated path
-  -synonyms             Expand nodes to include synonyms
-  -location             Do not include location
-  -window_size [WINDOW_SIZE]
-  ```
+  -W WINDOW_SIZE, --window_size WINDOW_SIZE
+                        The size of the window for symbol pairs (99 => unlimited); default = 1
+  -S SYMBOL_PAIRS, --symbol_pairs SYMBOL_PAIRS
+                        Include Symbol pairs and/or locations*
+  -R EDGE_PAIRS, --edge_pairs EDGE_PAIRS
+                        Include Relationship edge pairs and/or locations*
+  -T TERMINAL_SYMBOLS, --terminal_symbols TERMINAL_SYMBOLS
+                        Include Terminal symbols and/or locations*
+  -E EOL, --eol EOL     Include End-of-line symbols and/or locations*
+  -C COMPOUND_SYMBOLS, --compound_symbols COMPOUND_SYMBOLS
+                        Include Compound symbols and/or locations*
+  -L LONG, --long_pairs LONG
+                        Include Long pairs without relationships and/or locations*
+  -A ABBREVIATED, --abbreviated ABBREVIATED
+                        Include Abbreviated relationships for long pairs and/or locations*
+  -D DUPLICATE_NODES, --duplicate_nodes DUPLICATE_NODES
+                        Include Duplicate symbols and/or locations*
+  -docid DOCID, --docid DOCID
+                        String preceding each document identifier; '' => no docid
+  -a ANCHORS, --anchors ANCHORS
+                        Enable (e)/disable (d) 'equality' operators to anchor location calculations; default => e
+  -c, --context         Return the math tuples in context; default => tuples only
+  -d DUPS, --dups DUPS  Include duplication tuples for subset of 'VNOMFRTW'**
+  -s, --synonyms        Expand nodes to include wildcard synonyms
+  -w WILD_DUPS, --wild_dups WILD_DUPS
+                        Wild duplication tuples for subset of 'VNOMFRTW'**
+
+Codes:
+        *tuple types  = S(ymbol pairs), R(elationship edge pairs),
+                        T(erminal symbols), E(nd of line symbols), C(ompound symbols),
+                        L(ong pairs empty), A(bbreviated long pairs),
+                        D(uplicate symbols)
+        *tuple incl'n : (i <= 0) => include no tuples of this type
+                        (0 < i < 99) => augment with location tuples whenever path length has fewer that i nodes
+                        (i >= 99) => augment with all location tuples
+
+        **node types  = V(ariables), N(umbers), O(perations),
+                        M(atrices and parenthetical expressions),
+                        F(ractions), R(adicals), T(ext), W(ildcard of unknown type)
+        **dups        : subset of "VNOMFRTW" to appear in duplicate nodes
+        **wild dups   : subset of "VNOMFRTW" to be appear as wildcards in duplicate nodes
+
+        defaults    : W=1, S=8, R=0, T=8, E=0, C=8, L=0, A=0, D=8
+                      docid="<DOCNO>", no context, no expansion with synonyms
+                      anchors enabled, dups = 'VNOMFRTW', wild_dups = 'VNOMFRTW'
+
+```
 
 ## Example with default (optimal) parameter settings
-  `python3 -m mathtuples.convert -infile [your-file]`
-  
-  For example, `python3 -m mathtuples.convert -infile mathtuples/testfiles/test_2.xml` will output:
-```
-#(start)# #(v!α,[n,b],-)# #(v!α,[n,b])# #(v!α,m!()1x1,n,-)# #(v!α,m!()1x1,n)# #(m!()1x1,[n,w],n)# #(m!()1x1,[n,w])# #(m!()1x1,=,n,n)# #(m!()1x1,=,n)# #(=,v!y,n,nn)# #(=,v!y,n)# #(v!y,n!0,b,nnn)# #(v!y,n!0,b)# #(n!0,!0,nnnb)# #(n!0,!0)# #(m!()1x1,v!x,w,n)# #(m!()1x1,v!x,w)# #(v!x,n!0,b,nw)# #(v!x,n!0,b)# #(n!0,!0,nwb)# #(n!0,!0)# #(v!α,n!0,b,-)# #(v!α,n!0,b)# #(n!0,!0,b)# #(n!0,!0)# #(end)#
-```
-and  `python3 -m mathtuples.convert -infile mathtuples/testfiles/test_2.xml -repetitions` will output:
-```
-#(start)# #(v!α,[n,b],-)# #(v!α,[n,b])# #(v!α,m!()1x1,n,-)# #(v!α,m!()1x1,n)# #(m!()1x1,[n,w],n)# #(m!()1x1,[n,w])# #(m!()1x1,=,n,n)# #(m!()1x1,=,n)# #(=,v!y,n,nn)# #(=,v!y,n)# #(v!y,n!0,b,nnn)# #(v!y,n!0,b)# #(n!0,!0,nnnb)# #(n!0,!0)# #(m!()1x1,v!x,w,n)# #(m!()1x1,v!x,w)# #(v!x,n!0,b,nw)# #(v!x,n!0,b)# #(n!0,!0,nwb)# #(n!0,!0)# #{n!0,nnb,wb,n}# #{n!0,nnb,wb}# #(v!α,n!0,b,-)# #(v!α,n!0,b)# #(n!0,!0,b)# #(n!0,!0)# #{n!0,nnnb,b,-}# #{n!0,nnnb,b}# #{n!0,nwb,b,-}# #{n!0,nwb,b}# #(end)#
-```
+  `cat Your-Filename-Here | python3 -m mathtuples.convert > Just-Math-Tuples`
+## Use in a processing pipeline, replacing MathML by tuples in context
+  `pre-process < My-Input | python3 -m mathtuples.convert -c | post-process > My-Output`

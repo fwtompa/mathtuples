@@ -21,8 +21,9 @@
 
     Contact:
         - Dallas Fraser, dallas.fraser.waterloo@gmail.com
-    Modified by Frank Tompa, 2021
-    Packaged with mathtuples. Contact:
+
+    Modified by Frank Tompa, 2021-22 and packaged with mathtuples.
+        Contact:
         - Frank Tompa, fwtompa@uwaterloo.ca
 """
 '''
@@ -36,6 +37,8 @@ import argparse
 import logging
 import sys
 import os
+import re
+import traceback
 __author__ = 'Dallas Fraser, FWTompa'
 
 try:
@@ -45,91 +48,164 @@ except ImportError:
    from math_extractor import MathExtractor
    from mathsymbol import MathSymbol, REP_TAG
 
-
 START_TAG = "#(start)#"
 END_TAG = "#(end)#"
-TERMINAL_NODE = "terminal_node"
-COMPOUND_NODE = "compound_node"
-EDGE_PAIR_NODE = "edge_pair"
-EOL_NODE = "eol_node"
-REPETITION_NODE = "repetition_node"
-SYMBOL_PAIR_NODE = "symbol_pair"
+
+SYMBOL_PAIR_NODE = "S"
+EDGE_PAIR_NODE = "R"
+TERMINAL_NODE = "T"
+EOL_NODE = "E"
+COMPOUND_NODE = "C"
+LONG_NODE = "L"
+ABBREVIATED_NODE = "A"
+DUPLICATE_NODE = "D"
+
+INFINITE_DEPTH = 99
+MAX_EOL_HEIGHT = 3
+MAX_DUP = 6      # do not generate duplication tuples for more than this many repetitions
+
 EDGES = ['n', 'a', 'b', 'c', 'o', 'u', 'd', 'w', 'e']
-WILDCARD_MOCK = "?x"
+VERTEX_TYPES = 'VNOMFRT' # W => wildcard symbol (unknown type)
+
+WILDCARD_MOCK = "??W"
 WILDCARD = "*"
+PROTECTED_WILDCARD = "--*--"
 ENCODING = "utf-8"
+NAMESPACE = r"(?:[^>=\s:]*:)?"
+MATH_OPENED = re.compile(r"<"+NAMESPACE+r"[Mm]ath[ >]")
+MATH_CLOSED = re.compile(r"</"+NAMESPACE+r"[Mm]ath>")
 
+PgmMatch = re.compile(r'^.*/([^/]*.py)"(.*)')
 
+def parse_file(docid="",
+               context=False,
+               synonyms=False,
+               dups="",
+               wild_dups="",
+               window_size=1,
+               loc_info={},
+               anchors=[]):
+    """Parses a file and outputs to a file with math tuples
+    """
+    idRE = re.compile("\Z(.)") # an impossible pattern to match
+    if docid != "":
+        idRE = re.compile(docid + r"([^ <>]*)")
+    # with (sys.stdin if (infile is None) else open(infile, 'r', encoding=ENCODING)) as fin:
+    with sys.stdin as fin:
+        # with (sys.stdout if (outfile is None) else open(outfile, "w+", encoding=ENCODING)) as fout:
+        with sys.stdout as fout:
+            inMath = False;  # start outside all math expressions
+            content = []
+            mathID = ""
+            lineNum = 0
+            for line in fin:  # find a line end outside math expressions
+                lineNum += 1
+                newID = idRE.search(line)
+                if newID:
+                    mathID = newID.group(1)
+                    lineNum = 0
+                frags = MATH_CLOSED.split(line)
+                if inMath or MATH_OPENED.search(frags[-1]): 
+                    content.append(line)
+                    inMath = True
+                if MATH_CLOSED.search(line) and not MATH_OPENED.search(frags[-1]): 
+                    if inMath:
+                        line = "".join(content)
+                        content = []
+                        inMath = False
+                    try:
+                        tokens = MathExtractor.math_tokens(line,in_context=context)  # do not precede formula with its formula id
+                        for token in tokens:
+                            ex = convert_math_expression(mathID,lineNum,token,
+                                                     synonyms=synonyms,
+                                                     dups=dups,
+                                                     wild_dups=wild_dups,
+                                                     window_size=window_size,
+                                                     loc_info=loc_info,
+                                                     anchors=anchors)
+                            if ex != "":
+                                print(ex, file=fout, end="")
+                                if not context:
+                                    print(file=fout) # separate math expression on individual lines
+                            else:
+                                print(token, file=fout, end="")
+                    except Exception as err:
+                        print("Error in data file or query "+ mathID +", line "+ str(lineNum), file=sys.stderr)
+                        stack = traceback.format_exc().split("\n")
+                        where = ""
+                        pgm = PgmMatch.search(stack[-4])
+                        if pgm:
+                            where = pgm.group(1) + pgm.group(2)
+                        print("    program file",where,stack[-3].strip(),stack[-2].strip(),stack[-1],file=sys.stderr)
+                        print("#(error)# ", file=fout, end="")
+                elif context and not inMath: 
+                    print(line,file=fout,end="")
 
-def convert_math_expression(mathml,
+def convert_math_expression(mathID,lineNum,mathml,
+                            synonyms=False,
+                            dups="",
+                            wild_dups="",
                             window_size=1,
-                            symbol_pairs=True,
-                            terminal_symbols=True,
-                            compound_symbols=True,
-                            location=True,
-                            eol=False,
-                            edge_pairs=False,
-                            unbounded=False,
-                            shortened=True,
-                            repetitions=False,
-                            synonyms=False):
+                            loc_info={},
+                            anchors=[]):
     """Returns the math tuples for a given math expression
 
     Parameters:
         mathml: the math expression (string)
-        (window_size): The size of the path between nodes for symbols pairs
-        (symbol_pairs): True will include symbol pairs
-        (terminal_symbols): True to include terminal symbols nodes
-        (compound_symbols): True to include compound symbols nodes
-        (location): True to include locations as well
-        (eol): True will included eol nodes
-        (edge_pairs): True to include edge pairs nodes
-        (unbounded): True - unbounded window size
-        (shortened): True - shorten symbol pair paths (if unbounded=True)
-        (repetitions): True to include repeated symbol's relative locations
         (synonyms): True to expand nodes to include wildcard expansion (during indexing only)
+        (dups): string of node types to include duplicated symbols' relative locations
+        (wild_dups): string of node types to include wildcards for duplicated symbols' relative locations
+        (window_size): the size of the path between nodes for symbols pairs
+        (loc_info): dictionary of feature types to maximum length of locations to record
+        (anchors): list of operators that reset location calculations
     Returns:
         : a string of the math tuples
     """
-    pmml = MathExtractor.isolate_pmml(mathml)
+    try:
+        pmml = MathExtractor.isolate_pmml(mathml)
+        if pmml is None:
+            return ""
+    except: # MathML is mal-formed
+        print("Badly formed MathML expression: " + mathml,file=sys.stderr)
+        return ""
+
     tree_root = MathSymbol.parse_from_mathml(pmml)
     if tree_root is not None:
-        height = tree_root.get_height()
+        height = tree_root.get_height(max=MAX_EOL_HEIGHT) # only measure up to max
         eol_check = False
-        if height <= 2:
-            eol_check = eol
+        if height < MAX_EOL_HEIGHT:
+            eol_check = (EOL_NODE in loc_info)
         repDict = {}  # dictionary to collect repetitions if necessary
         pairs = tree_root.get_pairs("",    # root's location is empty string
                                     window_size,
                                     eol=eol_check,
-                                    symbol_pairs=symbol_pairs,
-                                    compound_symbols=compound_symbols,
-                                    terminal_symbols=terminal_symbols,
-                                    edge_pairs=edge_pairs,
-                                    unbounded=unbounded,
-                                    repetitions=repetitions,
+                                    symbol_pairs=(SYMBOL_PAIR_NODE in loc_info),
+                                    compound_symbols=(COMPOUND_NODE in loc_info),
+                                    terminal_symbols=(TERMINAL_NODE in loc_info),
+                                    edge_pairs=(EDGE_PAIR_NODE in loc_info),
+                                    unbounded=(LONG_NODE in loc_info),
+                                    repetitions= dups + wild_dups,
                                     repDict=repDict,
-                                    shortened=shortened)
+                                    max_dup=MAX_DUP,
+                                    shortened=(ABBREVIATED_NODE in loc_info),
+                                    anchors=anchors)
+        """
+        # not relevant if all ***closest*** pairs are used
+        # check whether any duplication tuples were omitted max number of repetitions exceeded
+        for k in repDict:
+            if len(repDict[k]) > MAX_DUP:
+                print("Maximum number of duplication tuples per symbol exceeded in data file or query "+ mathID +", line "+ str(lineNum), file=sys.stderr)
+                break
+        """
         # all tokens returned include their location
-        if not synonyms:
-            node_list = [node
-                         for node in pairs
-                         if check_node(node)]
-        else:
-            # loop through all kept nodes and their expanded nodes
-            node_list = [expanded_node
-                         for node in pairs
-                         if check_node(node)
-                         for expanded_node in expand_node_with_wildcards(node)
-                         ]
-        # create a list of nodes
-        # do we want to expand with location
-        if location:
-            nodes_payloads = expand_nodes_with_location(node_list)
-        else:
-            # remove the location if not wanted
-            nodes_payloads = [pop_location(node, False)
-                              for node in node_list]
+        # replace query wildcards and expand with wildcards if synonyms
+        node_list = [expanded_node
+                     for node in pairs
+                     for expanded_node in expand_node_with_wildcards(node,dups,wild_dups,synonyms)
+                     ]
+        # create a list of nodes with locations, as specified
+        nodes_payloads = expand_nodes_with_location(node_list, loc_info)
+
         node_list = [format_node(node) for node in nodes_payloads]
         # add start and end strings
         node_list = [START_TAG] + node_list + [END_TAG]
@@ -137,65 +213,106 @@ def convert_math_expression(mathml,
     else:
         return ""
 
-
-def check_node(node):
-    """Returns False if the node is not needed
+def expand_node_with_wildcards(node, dups, wild_dups, synonyms):
+    """Returns a list of nodes that replaces wildcards in all non-duplicates and
+       dups indicates vertex types to include "as is" in duplicate nodes
+       wild_dups indicates vertex types to include as wild cards in duplicate nodes
+       For other node types, replace query wildcards by generic wildcard.
+       If synonyms, which should be at index time only, expand tuples with wildcards.
     """
+    temp = list(node)
+    results = []
     node_type = determine_node(node)
-    check = True
-    if node_type == EOL_NODE or node_type == TERMINAL_NODE:
-        # only need to look at first part
-        check = not check_wildcard(node[0])
-    elif node_type == SYMBOL_PAIR_NODE:
-        # does it make sense to keep pairs of symbols with no path
-        # if one of those symbols is a wildcard
-        if len(node) == 3:
-            # if one is a wildcard then dont want to keep it
-            check = not(check_wildcard(node[0]) or check_wildcard(node[1]))
+    if node_type == DUPLICATE_NODE:
+            label = node[1]
+            type = make_wild(label)  # e.g. "??V" for V!x" or "??W" for "?a" 
+            if type[2:3] in dups and type != WILDCARD_MOCK:
+                results.append(node)  # keep the original
+            if type[2:3] in wild_dups or synonyms or type == WILDCARD_MOCK:
+                temp[1] = type        # augment with wildcard
+                results.append(tuple(temp))
+    elif node_type == SYMBOL_PAIR_NODE or node_type == ABBREVIATED_NODE: 
+            if check_wildcard(temp[0]):
+                if not check_wildcard(temp[1]): # (?a,y,n)
+                    temp[0] = WILDCARD_MOCK
+                    results.append(tuple(temp))
+            elif check_wildcard(temp[1]):      # (x,?b,n)
+                temp[1] = WILDCARD_MOCK
+                results.append(tuple(temp))
+            else:                      # (x,y,n)
+                results.append(node)
+                if synonyms:
+                    remember = temp[0]
+                    temp[0] = make_wild(temp[0])
+                    results.append(tuple(temp))
+                    # now do the second node
+                    temp[0] = remember
+                    temp[1] = make_wild(temp[1])
+                    results.append(tuple(temp))
+    elif node_type == COMPOUND_NODE:
+            if check_wildcard(node[0]):         # (?a,[e,f])
+                temp[0] = WILDCARD_MOCK
+                results.append(tuple(temp))
+            else:                               # (x,[e,f])
+                results.append(node)
+                if synonyms:
+                    temp[0] = make_wild(temp[0])
+                    results.append(tuple(temp))
+    elif node_type == EDGE_PAIR_NODE:
+            if check_wildcard(node[2]):         # (e,f,?a)
+                temp[2] = WILDCARD_MOCK
+                results.append(tuple(temp))
+            else:                               # (e,f,x)
+                results.append(node)
+                if synonyms:
+                    temp[2] = make_wild(temp[2])
+                    results.append(tuple(temp))
+    elif node_type == TERMINAL_NODE or node_type == EOL_NODE:
+            if not check_wildcard(node[0]):     # (x,!0,..)
+                results.append(node)
+    elif node_type == LONG_NODE:
+            if not check_wildcard(node[0]) and not check_wildcard(node[1]): # (x,y)
+                results.append(node)
+    return results
+
+def determine_node(node):
+    """
+     Pre: all nodes have location
+     Returns the type of node
+    """
+    if node[1] == "!0":
+        if len(node) == 4:  # (x,!0,n,l)
+            node_type = EOL_NODE
         else:
-            # then both need to be a wildcard
-            check = not(check_wildcard(node[0]) and check_wildcard(node[1]))
-    elif node_type == EDGE_PAIR_NODE or node_type == COMPOUND_NODE or node_type == REPETITION_NODE:
-        # keep them regardless at this point
-        pass
-    return check
+            node_type = TERMINAL_NODE
+    elif ("[" in node[1] and "]" in node[1]) or isinstance(node[1], list): # (x,[y,z],l)
+        node_type = COMPOUND_NODE
+    elif node[0] in EDGES and node[1] in EDGES: # (e,e,x,l)
+        node_type = EDGE_PAIR_NODE
+    elif node[0] == REP_TAG: # (r,x,p,l) or (r,x,p,p,l)
+        node_type = DUPLICATE_NODE
+    elif len(node) == 3: # (x,x,l)
+        node_type = LONG_NODE
+    else: # (x,x,e,l)
+        node_type = SYMBOL_PAIR_NODE # or could be ABBREVIATED_NODE !
+    return node_type
 
-
-def expand_nodes_with_location(nodes):
-    """Returns a list of nodes where each tuple is expanded to two tuples
-        one with its location and one without its location
-
-    Parameters:
-        nodes: the list of nodes with their locations
-    Returns:
-        result: the list of nodes after expansion
+def make_wild(label):
     """
-    result = []
-    for node in nodes:
-        # add the first node
-        result.append(pop_location(node,True))
-        # add the second node
-        result.append(pop_location(node,False))
-    return result
-
-
-def pop_location(node, include_location):
-    """Returns the node without location
-
-    Parameters:
-        node: the math tuple with its location
-        include_location: whether to include the location in the tuple
-    Returns:
-        : a tuple representing the node with or without its location
+    given string "t!x", returns "?t"
     """
-    # location = node[-1]
-    if not include_location:
-        # need to remove the location from the tuple
-        node = list(node)
-        node.pop()
-        node = tuple(node)
-    return node
-
+    sep = label.find("!")
+    if sep == -1 or label[0] == "!": # no ! present or it is used as an operator
+       if label[0] == "?":
+           return WILDCARD_MOCK # wildcard can match anything
+       else:
+           return "??O" # must be an operator
+    else:
+       type = label[0:sep]
+       if type in VERTEX_TYPES:
+           return ("??" + type) # symbol before the exclamation point
+       else:
+           return label # e.g., unchanged for W! -- does this make sense?
 
 def check_wildcard(term):
     """Returns True if term is a wildcard term
@@ -205,23 +322,57 @@ def check_wildcard(term):
     else:
     	return False
 
+def expand_nodes_with_location(nodes, loc_info):
+    """Returns a list of nodes where each tuple is expanded to one or two tuples:
+        one with its location and one without its location
+
+    Parameters:
+        nodes: the list of nodes that have been produced (loc != 0), with their locations
+	loc_info: for each node type, negative => just locations, |l| = maximum number of nodes on path
+
+    Returns:
+        result: the list of nodes after expansion
+    """
+    result = []
+    for node in nodes:
+        node_type = determine_node(node) # N.B. ABBREVIATED_NODE is identified as SYMBOL_PAIR_NODE !
+        depth = loc_info[node_type] # N.B. Node types that are not in loc_info cannot occur in nodes
+        loc_len = 1 + len(MathSymbol.decode_loc(node[-1])) # number of nodes on path
+        result.append(pop_location(node))
+        if loc_len < depth or depth >= INFINITE_DEPTH:
+            result.append(node)
+    return result
+
+def pop_location(node):
+    """
+    Parameters:
+        node: the math tuple with its location
+    Returns:
+        : a tuple representing the node without its location
+    """
+    # location = node[-1]
+    # need to remove the location from the tuple
+    return tuple(node[0:-1])
 
 def format_node(old_node):
     """Returns the formatted node
     """
     new_node = []
     for part in old_node:
+        # We should escape * so that it is not interpreted as a wildcard symbol
+        part = part.replace(WILDCARD,PROTECTED_WILDCARD)
+        if part == WILDCARD_MOCK:
+            part = WILDCARD
+        elif part[0:2] == "??":
+            part = part[1:]
         new_node.append(part)
-        if "*" in part:
-            new_node[-1] = "/*"
-        if "?" in part:
-            new_node[-1] = WILDCARD
-    if determine_node(old_node) == REPETITION_NODE:
+
+    is_dup_node = (determine_node(old_node) == DUPLICATE_NODE)
+    if is_dup_node:
         # remove first field
         new_node.pop(0)
-    node = tuple(new_node)
-    node = str(node).lower()
-    if determine_node(old_node) == REPETITION_NODE:
+    node = str(tuple(new_node)).lower()
+    if is_dup_node:
         # also change parentheses to braces
         node = "{" + node[1:-2] + "}"
     return ("#" + (node
@@ -234,118 +385,12 @@ def format_node(old_node):
                    .replace("&lsqb;", "lsqb")
                    .replace("&rsqb;", "rsqb")
                    .replace("&quest;", "quest")
+                   .replace("&amp;", "amp")
+                   .replace("&", "amp")
                    .replace(">", "gt")
                    .replace("<", "lt")
+                   .replace (PROTECTED_WILDCARD, "ast")
                    ) + "#")
-
-
-def determine_node(node):
-    """Returns the type of node
-    """
-    node_type = SYMBOL_PAIR_NODE
-    if node[1] == "!0":
-        if len(node) == 2:
-            node_type = TERMINAL_NODE
-        elif node[2] == "n":
-            node_type = EOL_NODE
-        else:
-            node_type = TERMINAL_NODE
-    elif ("[" in node[1] and "]" in node[1]) or isinstance(node[1], list):
-        node_type = COMPOUND_NODE
-    elif node[0] in EDGES:
-        node_type = EDGE_PAIR_NODE
-    elif node[0] == REP_TAG:
-        node_type = REPETITION_NODE
-    return node_type
-
-def expand_node_with_wildcards(node):
-    """Returns a list of nodes that includes the expanded nodes
-    """
-    results = [node]
-    node_type = determine_node(node)
-    if node_type == SYMBOL_PAIR_NODE:
-        # if just two symbols (no path) then no point in expanding
-        if len(node) > 3:
-            # expands to two nodes
-            # one with first tag as wc and second tag as wc
-            temp = list(node)
-            remember = temp[0]
-            if (not check_wildcard(remember) and not check_wildcard(temp[1])):
-                temp[0] = WILDCARD_MOCK
-                results.append(tuple(temp))
-            	# now do the second node
-                temp[0] = remember
-                temp[1] = WILDCARD_MOCK
-                results.append(tuple(temp))
-    elif node_type == COMPOUND_NODE:
-        # add an expansion of the compound node
-        # the node tag is replaced with a wildcard
-        if (not check_wildcard(node[0])):
-            temp = list(node)
-            temp[0] = WILDCARD_MOCK
-            results.append(tuple(temp))
-    elif node_type == EDGE_PAIR_NODE:
-        # replace tag with a wildcard
-        if (not check_wildcard(node[-2])):
-            temp = list(node)
-            temp[-2] = WILDCARD_MOCK
-            results.append(tuple(temp))
-    elif node_type == REPETITION_NODE:
-        # add an expansion of the repetition node
-        # the node tag is replaced with a wildcard
-        if (not check_wildcard(node[1])):
-            temp = list(node)
-            temp[1] = WILDCARD_MOCK
-            results.append(tuple(temp))
-    elif node_type == TERMINAL_NODE or EOL_NODE:
-        # no expansion for them
-        pass
-    return results
-
-def parse_file(filename,
-               outfile,
-               window_size=1,
-               symbol_pairs=True,
-               eol=False,
-               compound_symbols=True,
-               terminal_symbols=True,
-               edge_pairs=False,
-               unbounded=False,
-               shortened=True,
-               location=True,
-               repetitions=False,
-               synonyms=False):
-    """Parses a file and outputs to a file with math tuples
-
-    Parameters:
-        filename: the name of the file to parse
-        outfile: the name of the file to output to; NONE => use sys.stdout
-    """
-    with open(filename, 'r', encoding='utf-8') as f:
-        content = f.read()
-    if outfile is not None:
-        out = open(outfile, "w+", encoding=ENCODING)
-    else:
-        out = sys.stdout
-    tokens = MathExtractor.math_tokens(content)  # do not precede formula with its formula id
-    if len(tokens) == 0:
-        print("No math formulas detected.")
-    for token in tokens:
-        ex = convert_math_expression(token,
-                                     window_size=window_size,
-                                     symbol_pairs=symbol_pairs,
-                                     eol=eol,
-                                     compound_symbols=compound_symbols,
-                                     terminal_symbols=terminal_symbols,
-                                     edge_pairs=edge_pairs,
-                                     unbounded=unbounded,
-                                     shortened=shortened,
-                                     location=location,
-                                     repetitions=repetitions,
-                                     synonyms=synonyms)
-        print(ex, file=out)
-    if outfile is not None:
-        os.close(out)
 
 if __name__ == "__main__":
     """logging.basicConfig(filename="convert.log",
@@ -353,84 +398,147 @@ if __name__ == "__main__":
                         format='%(asctime)s %(message)s')
     logger = logging.getLogger(__name__)
     """
-    descp = "Convert - MathML file to file with Tangent Tuples"
-    parser = argparse.ArgumentParser(description=descp)
-    parser.add_argument('-infile',
-                        '--infile',
-                        help='The file to read from')
-    parser.add_argument('-outfile',
-                        '--outfile',
-                        help='The file to output to')
-    parser.add_argument("-symbol_pairs",
-                        dest="symbol_pairs",
-                        action="store_false",
-                        help="Do not use symbol pairs",
-                        default=True)
-    parser.add_argument('-eol',
-                        dest="eol",
-                        action="store_true",
-                        help="Use EOL tuples",
-                        default=False)
-    parser.add_argument('-compound_symbols',
-                        dest="compound_symbols",
-                        action="store_false",
-                        help="Do not use compound symbols",
-                        default=True)
-    parser.add_argument('-terminal_symbols',
-                        dest="terminal_symbols",
-                        action="store_false",
-                        help="Use terminal symbols",
-                        default=True)
-    parser.add_argument('-edge_pairs',
-                        dest="edge_pairs",
-                        action="store_true",
-                        help="Use edge pairs",
-                        default=False)
-    parser.add_argument('-unbounded',
-                        dest="unbounded",
-                        action="store_true",
-                        help="Symbol pairs should be unbounded",
-                        default=False)
-    parser.add_argument('-shortened',
-                        dest="shortened",
-                        action="store_false",
-                        help="Unbounded symbol pairs should not include abbreviated path",
-                        default=True)
-    parser.add_argument('-synonyms',
-                        dest="synonyms",
-                        action="store_true",
-                        help="Expand nodes to include synonyms",
-                        default=False)
-    parser.add_argument('-repetitions',
-                        dest="repetitions",
-                        action="store_true",
-                        help="Include repeated symbols",
-                        default=False)
-    parser.add_argument('-location',
-                        dest="location",
-                        action="store_false",
-                        help="Do not include location",
-                        default=True)
-    parser.add_argument('-window_size',
+
+    descp = "Convert - MathML to Math Tuples"
+    epilog = '''Codes:
+        *tuple types  = S(ymbol pairs), R(elationship edge pairs), 
+                        T(erminal symbols), E(nd of line symbols), C(ompound symbols),
+                        L(ong pairs empty), A(bbreviated long pairs),
+                        D(uplicate symbols)
+        *tuple incl'n : (i <= 0) => include no tuples of this type
+                        (0 < i < 99) => augment with location tuples whenever path length has fewer that i nodes 
+                        (i >= 99) => augment with all location tuples
+
+        **node types  = V(ariables), N(umbers), O(perations),
+                        M(atrices and parenthetical expressions),
+                        F(ractions), R(adicals), T(ext), W(ildcard of unknown type)
+        **dups        : subset of "VNOMFRTW" to appear in duplicate nodes
+        **wild dups   : subset of "VNOMFRTW" to be appear as wildcards in duplicate nodes
+
+        defaults    : W=1, S=8, R=0, T=8, E=0, C=8, L=0, A=0, D=8
+                      docid="<DOCNO>", no context, no expansion with synonyms
+                      anchors enabled, dups = 'VNOMFRTW', wild_dups = 'VNOMFRTW'
+    '''
+    parser = argparse.ArgumentParser(description=descp,epilog=epilog,formatter_class=argparse.RawDescriptionHelpFormatter)
+    #    parser.add_argument('-infile',
+    #                        default=None,
+    #                        help='The file to read from; omitted =>stdin')
+    #    parser.add_argument('-outfile',
+    #                        default=None,
+    #                        help='The file to output to; omitted => stdout')
+    parser.add_argument("-W",'--window_size',
                         dest="window_size",
                         default=1,
                         type=int,
-                        help='The size of the window',
-                        nargs='?')
+                        help='The size of the window for symbol pairs (99 => unlimited); default = 1')
+    parser.add_argument("-S", "--symbol_pairs",
+                        dest="symbol_pairs",
+                        help="Include Symbol pairs and/or locations*",
+                        default=8,
+			            type = int)
+    parser.add_argument("-R",'--edge_pairs',
+                        dest="edge_pairs",
+                        help="Include Relationship edge pairs and/or locations*",
+                        default=0,
+			            type = int)
+    parser.add_argument("-T",'--terminal_symbols',
+                        dest="terminal_symbols",
+                        help="Include Terminal symbols and/or locations*",
+                        default=8,
+			            type = int)
+    parser.add_argument("-E",'--eol',
+                        dest="eol",
+                        help="Include End-of-line symbols and/or locations*",
+                        default=0,
+			            type = int)
+    parser.add_argument("-C",'--compound_symbols',
+                        dest="compound_symbols",
+                        help="Include Compound symbols and/or locations*",
+                        default=8,
+			            type = int)
+    parser.add_argument("-L",'--long_pairs',
+                        dest="long",
+                        help="Include Long pairs without relationships and/or locations*",
+                        default=0,
+			            type = int)
+    parser.add_argument("-A",'--abbreviated',
+                        dest="abbreviated",
+                        help="Include Abbreviated relationships for long pairs and/or locations*",
+                        default=0,
+			            type = int)
+    parser.add_argument("-D",'--duplicate_nodes',
+                        dest="duplicate_nodes",
+                        help="Include Duplicate symbols and/or locations*",
+                        default=8,
+			            type = int)
+    parser.add_argument("-docid",'--docid',
+                        dest="docid",
+                        help="String preceding each document identifier; '' => no docid",
+                        default="<DOCNO>")
+    parser.add_argument("-a",'--anchors',
+                        dest="anchors",
+                        help="Enable (e)/disable (d) 'equality' operators to anchor location calculations; default => e",
+                        default="e")
+    parser.add_argument("-c",'--context',
+                        dest="context",
+                        action="store_true",
+                        help="Return the math tuples in context; default => tuples only",
+                        default=False)
+    parser.add_argument("-d",'--dups',
+                        dest="dups",
+                        help="Include duplication tuples for subset of 'VNOMFRTW'**",
+                        default="VNOMFRTW")
+    parser.add_argument("-s",'--synonyms',
+                        dest="synonyms",
+                        action="store_true",
+                        help="Expand nodes to include wildcard synonyms",
+                        default=False)
+    parser.add_argument("-w",'--wild_dups',
+                        dest="wild_dups",
+                        help="Wild duplication tuples for subset of 'VNOMFRTW'**",
+                        default="VNOMFRTW")
     args = parser.parse_args()
-    if args.infile is not None:
-        parse_file(args.infile,
-                   args.outfile, # if None, will write to sys.stdout
-                   window_size=args.window_size,
-                   symbol_pairs=args.symbol_pairs,
-                   eol=args.eol,
-                   compound_symbols=args.compound_symbols,
-                   terminal_symbols=args.terminal_symbols,
-                   edge_pairs=args.edge_pairs,
-                   unbounded=args.unbounded,
-                   shortened=args.shortened,
-                   location=args.location,
-                   repetitions=args.repetitions,
-                   synonyms=args.synonyms
-                   )
+
+    # rationalize indicators for duplicates
+    dups = args.dups
+    wild_dups = args.wild_dups
+    duplicate_nodes = args.duplicate_nodes
+    if duplicate_nodes != 0 and wild_dups == "" and dups == "":
+        wild_dups = VERTEX_TYPES + "W"
+        print("duplicates requested, but no types specified, so wilds used for all types",file=sys.stderr)
+    if args.anchors:
+        if args.anchors[0] == "d":
+            anchors = []
+        else:
+           anchors = [":=","<","=",">","≠","≤","≥",
+			   "∝","∼","≅","≈","≡",
+			   "→","↔","↦","⇒","⇔","⟹",
+			   "⊂","⊆","⊈"]
+    else:
+        anchors = []
+    # store location directives
+    loc_info = {SYMBOL_PAIR_NODE: args.symbol_pairs,
+                EDGE_PAIR_NODE: args.edge_pairs,
+                TERMINAL_NODE: args.terminal_symbols,
+                EOL_NODE: args.eol,
+                COMPOUND_NODE: args.compound_symbols,
+                LONG_NODE: args.long,
+                ABBREVIATED_NODE: args.abbreviated,
+                DUPLICATE_NODE: duplicate_nodes}
+    # remove non-positive entries from loc_info
+    dels = []
+    for node_type in loc_info:
+        if loc_info[node_type] <= 0:
+            dels.append(node_type)   # do not include these tuples as features
+    for d in dels:
+        del loc_info[d]
+
+    parse_file(docid=args.docid,
+               context=args.context,
+               synonyms=args.synonyms,
+               dups=dups,
+               wild_dups=wild_dups,
+               window_size=args.window_size,
+               loc_info=loc_info,
+               anchors=anchors)
     # logger.info("Done")

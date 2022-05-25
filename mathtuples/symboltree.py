@@ -40,7 +40,7 @@ ET.register_namespace('', 'http://www.w3.org/1998/Math/MathML')
 
 __author__ = 'Nidhin, FWTompa, KDavila'
 
-ST_MAX_RECUSION_DEPTH = 2500
+ST_MAX_RECURSION_DEPTH = 2500
 
 class SymbolTree:
     """
@@ -88,12 +88,11 @@ class SymbolTree:
     @classmethod
     def parse_from_slt(cls, tree_string):
         # Allow very depth trees...
-        if sys.getrecursionlimit() < ST_MAX_RECUSION_DEPTH:
-            sys.setrecursionlimit(ST_MAX_RECUSION_DEPTH)
+        if sys.getrecursionlimit() < ST_MAX_RECURSION_DEPTH:
+            sys.setrecursionlimit(ST_MAX_RECURSION_DEPTH)
 
         # remove surrounding quotation marks, if any
         root = cls.__create_tree_from_string(tree_string.strip('"'))
-
         return SymbolTree(root)
 
     @classmethod
