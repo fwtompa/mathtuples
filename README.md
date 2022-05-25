@@ -49,8 +49,8 @@ Further details can be found in Dallas Fraser's MMath thesis [4] and in a paper 
 ## Usage
 ```
 convert.py [-h] [-W WINDOW_SIZE] [-S SYMBOL_PAIRS] [-R EDGE_PAIRS] [-T TERMINAL_SYMBOLS] [-E EOL]
-                  [-C COMPOUND_SYMBOLS] [-L LONG] [-A ABBREVIATED] [-D DUPLICATE_NODES] [-docid DOCID] [-a ANCHORS] [-c]
-                  [-d DUPS] [-s] [-w WILD_DUPS]
+                  [-C COMPOUND_SYMBOLS] [-L LONG] [-A ABBREVIATED] [-D DUPLICATE_NODES] [-docid DOCID]
+                  [-a ANCHORS] [-c] [-d DUPS] [-s] [-w WILD_DUPS]
 
 Convert - MathML file to file with Math Tuples
 
