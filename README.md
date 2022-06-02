@@ -16,7 +16,7 @@ For example, given the MathML equivalent of _y<sub>i</sub><sup>n</sup> = n + x<s
  ```
  #(start)#
  #(v!y,=,n)# #(v!y,v!i,b)# #(v!y,v!n,a)# #(=,v!n,n)# #(v!n,+,n)# #(+,n!x)# #(v!x,v!n,a)#
- #(v!i,!0)# #(v!n,!0)# #(v!,!0)#
+ #(v!i,!0)# #(v!n,!0)# #(v!n,!0)#
  #(v!y,[a,b,n])#
  #{v!n,nna}# #{v!n,a,n}# #{?v,nna}# #{?v,a,n}# 
  #(v!y,=,n,)# #(v!y,v!i,b,)# #(v!y,v!n,a,)# #(=,v!n,n,n)# #(v!n,+,n,n)# #(+,n!x,nn)# #(v!x,v!n,a,nnn)#
