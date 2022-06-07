@@ -37,7 +37,7 @@ Further details can be found in Dallas Fraser's MMath thesis [4] and in a paper 
 2. Richard Zanibbi, Kenny Davila, Andrew Kane, Frank Wm. Tompa: "Multi-Stage Math Formula Search: Using Appearance-Based Similarity Metrics at Scale." _SIGIR 2016_: 145-154.
 3. Dallas J. Fraser, Andrew Kane, Frank Wm. Tompa: "Choosing Math Features for BM25 Ranking with Tangent-L." _DocEng 2018_: 17:1-17:10.
 4. Dallas J. Fraser: _Math Information Retrieval using a Text Search Engine._ Master’s thesis, University of Waterloo, Cheriton School of Computer Science, University of Waterloo (2018).
-5. Andrew R. Kane, Yin Ki Ng, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Doing Better with Less." _CLEF (Working Notes) 2022_.
+5. Andrew Kane, Yin Ki Ng, Frank Wm. Tompa: "Dowsing for Answers to Math Questions: Doing Better with Less." _CLEF (Working Notes) 2022_.
 
 ## Setup
 - `python3 -m build`
