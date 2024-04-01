@@ -50,6 +50,8 @@ except ImportError:
 
 START_TAG = "#(start)#"
 END_TAG = "#(end)#"
+START_ALT = "<alttext>"
+END_ALT = "</alttext>"
 
 SYMBOL_PAIR_NODE = "S"
 EDGE_PAIR_NODE = "R"
@@ -84,7 +86,8 @@ def parse_file(docid="",
                wild_dups="",
                window_size=1,
                loc_info={},
-               anchors=[]):
+               anchors=[],
+               include_latex=False):
     """Parses a file and outputs to a file with math tuples
     """
     idRE = re.compile("\Z(.)") # an impossible pattern to match
@@ -115,20 +118,23 @@ def parse_file(docid="",
                         inMath = False
                     try:
                         tokens = MathExtractor.math_tokens(line,in_context=context)  # do not precede formula with its formula id
+                        # returns [context0,math1,context1,math2,...,mathn,contextn]
                         for token in tokens:
-                            ex = convert_math_expression(mathID,lineNum,token,
+                            if token.startswith("<math"):
+                               ex = convert_math_expression(mathID,lineNum,token,
                                                      synonyms=synonyms,
                                                      dups=dups,
                                                      wild_dups=wild_dups,
                                                      window_size=window_size,
                                                      loc_info=loc_info,
-                                                     anchors=anchors)
-                            if ex != "":
-                                print(ex, file=fout, end="")
-                                if not context:
-                                    print(file=fout) # separate math expression on individual lines
-                            else:
-                                print(token, file=fout, end="")
+                                                     anchors=anchors,
+                                                     include_latex=include_latex)
+                               if ex != "":
+                                   print(ex, file=fout, end="")
+                                   if not context:
+                                       print(file=fout) # separate math expression on individual lines
+                            else: # must be printable context
+                               print(token, file=fout, end="")
                     except Exception as err:
                         print("Error in data file or query "+ mathID +", line "+ str(lineNum), file=sys.stderr)
                         stack = traceback.format_exc().split("\n")
@@ -147,7 +153,8 @@ def convert_math_expression(mathID,lineNum,mathml,
                             wild_dups="",
                             window_size=1,
                             loc_info={},
-                            anchors=[]):
+                            anchors=[],
+                            include_latex = False):
     """Returns the math tuples for a given math expression
 
     Parameters:
@@ -158,6 +165,7 @@ def convert_math_expression(mathID,lineNum,mathml,
         (window_size): the size of the path between nodes for symbols pairs
         (loc_info): dictionary of feature types to maximum length of locations to record
         (anchors): list of operators that reset location calculations
+        (include_latex): True if altext should also be included
     Returns:
         : a string of the math tuples
     """
@@ -169,7 +177,12 @@ def convert_math_expression(mathID,lineNum,mathml,
         print("Badly formed MathML expression: " + mathml,file=sys.stderr)
         return ""
 
+    # convert tree of MathML nodes to SLT
     tree_root = MathSymbol.parse_from_mathml(pmml)
+    latex = pmml.attrib.get('alttext')
+    if not latex:
+       latex = ""
+
     if tree_root is not None:
         height = tree_root.get_height(max=MAX_EOL_HEIGHT) # only measure up to max
         eol_check = False
@@ -208,6 +221,10 @@ def convert_math_expression(mathID,lineNum,mathml,
 
         node_list = [format_node(node) for node in nodes_payloads]
         # add start and end strings
+
+        if include_latex:
+           node_list.append(START_ALT + latex + END_ALT)
+
         node_list = [START_TAG] + node_list + [END_TAG]
         return " ".join(node_list)
     else:
@@ -318,9 +335,9 @@ def check_wildcard(term):
     """Returns True if term is a wildcard term
     """
     if term.startswith("?"):
-    	return True
+        return True
     else:
-    	return False
+        return False
 
 def expand_nodes_with_location(nodes, loc_info):
     """Returns a list of nodes where each tuple is expanded to one or two tuples:
@@ -328,7 +345,7 @@ def expand_nodes_with_location(nodes, loc_info):
 
     Parameters:
         nodes: the list of nodes that have been produced (loc != 0), with their locations
-	loc_info: for each node type, negative => just locations, |l| = maximum number of nodes on path
+    loc_info: for each node type, negative => just locations, |l| = maximum number of nodes on path
 
     Returns:
         result: the list of nodes after expansion
@@ -435,42 +452,42 @@ if __name__ == "__main__":
                         dest="symbol_pairs",
                         help="Include Symbol pairs and/or locations*",
                         default=8,
-			            type = int)
+                        type = int)
     parser.add_argument("-R",'--edge_pairs',
                         dest="edge_pairs",
                         help="Include Relationship edge pairs and/or locations*",
                         default=0,
-			            type = int)
+                        type = int)
     parser.add_argument("-T",'--terminal_symbols',
                         dest="terminal_symbols",
                         help="Include Terminal symbols and/or locations*",
                         default=8,
-			            type = int)
+                        type = int)
     parser.add_argument("-E",'--eol',
                         dest="eol",
                         help="Include End-of-line symbols and/or locations*",
                         default=0,
-			            type = int)
+                        type = int)
     parser.add_argument("-C",'--compound_symbols',
                         dest="compound_symbols",
                         help="Include Compound symbols and/or locations*",
                         default=8,
-			            type = int)
+                        type = int)
     parser.add_argument("-L",'--long_pairs',
                         dest="long",
                         help="Include Long pairs without relationships and/or locations*",
                         default=0,
-			            type = int)
+                        type = int)
     parser.add_argument("-A",'--abbreviated',
                         dest="abbreviated",
                         help="Include Abbreviated relationships for long pairs and/or locations*",
                         default=0,
-			            type = int)
+                        type = int)
     parser.add_argument("-D",'--duplicate_nodes',
                         dest="duplicate_nodes",
                         help="Include Duplicate symbols and/or locations*",
                         default=8,
-			            type = int)
+                        type = int)
     parser.add_argument("-docid",'--docid',
                         dest="docid",
                         help="String preceding each document identifier; '' => no docid",
@@ -488,6 +505,11 @@ if __name__ == "__main__":
                         dest="dups",
                         help="Include duplication tuples for subset of 'VNOMFRTW'**",
                         default="VNOMFRTW")
+    parser.add_argument("-l",'--latex',
+                        dest="latex",
+                        action="store_true",
+                        help="Return the LaTeX found in alttext; default => no LaTeX",
+                        default=False)
     parser.add_argument("-s",'--synonyms',
                         dest="synonyms",
                         action="store_true",
@@ -511,9 +533,9 @@ if __name__ == "__main__":
             anchors = []
         else:
            anchors = [":=","<","=",">","≠","≤","≥",
-			   "∝","∼","≅","≈","≡",
-			   "→","↔","↦","⇒","⇔","⟹",
-			   "⊂","⊆","⊈"]
+               "∝","∼","≅","≈","≡",
+               "→","↔","↦","⇒","⇔","⟹",
+               "⊂","⊆","⊈"]
     else:
         anchors = []
     # store location directives
@@ -540,5 +562,6 @@ if __name__ == "__main__":
                wild_dups=wild_dups,
                window_size=args.window_size,
                loc_info=loc_info,
-               anchors=anchors)
+               anchors=anchors,
+               include_latex=args.latex)
     # logger.info("Done")

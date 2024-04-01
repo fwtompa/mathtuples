@@ -137,25 +137,19 @@ class MathExtractor:
 
 
     @classmethod
-    def isolate_pmml(cls,tree):
+    def isolate_pmml(cls,math_expr):
         """
         extract the Presentation MathML from a MathML expr
         
-        param tree: MathML expression
-        type  tree: string
+        param math_expr: MathML expression
+        type  math_expr: string
         return: Presentation MathML
         rtype:  Element
         """
-        if (len(tree) == 0):
+        if (len(math_expr) == 0):
             return None
-        #print("MathML: " + tree)
+        #print("MathML: " + math_expr)
         
-        # ensure that the default namespace is specified (assumes MathML)
-        math_expr = cls.math_tokens(tree)
-        if len(math_expr) == 0:
-            return None
-        math_expr = math_expr[0]  # pick off the first or only expression
-
         math_root = ET.fromstring(math_expr)
 ##        print("parse_from_mathml tree: " + ET.tostring(xml_root,encoding="unicode"))
 
