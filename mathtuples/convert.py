@@ -182,7 +182,7 @@ def convert_math_expression(mathID,lineNum,mathml,
     ret_list = []
     cmml = False
     for t in tree_root:
-        print("tree: " + (t.toString() if t else "None"))
+        # print("tree: " + (t.toString() if t else "None"))
         if not t:
             cmml = True  # next tree is for cmml
             continue
