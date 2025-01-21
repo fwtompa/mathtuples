@@ -22,7 +22,7 @@
     Contact:
         - Dallas Fraser, dallas.fraser.waterloo@gmail.com
 
-    Modified by Frank Tompa, 2021-22 and packaged with mathtuples.
+    Modified by Frank Tompa, 2021-24 and packaged with mathtuples.
         Contact:
         - Frank Tompa, fwtompa@uwaterloo.ca
 """
@@ -41,12 +41,8 @@ import re
 import traceback
 __author__ = 'Dallas Fraser, FWTompa'
 
-try:
-   from mathtuples.math_extractor import MathExtractor
-   from mathtuples.mathsymbol import MathSymbol, REP_TAG
-except ImportError:
-   from math_extractor import MathExtractor
-   from mathsymbol import MathSymbol, REP_TAG
+from .math_extractor import MathExtractor
+from .mathsymbol import MathSymbol, REP_TAG
 
 START_TAG = "#(start)#"
 END_TAG = "#(end)#"
@@ -54,17 +50,13 @@ START_ALT = "<alttext>"
 END_ALT = "</alttext>"
 
 SYMBOL_PAIR_NODE = "S"
-EDGE_PAIR_NODE = "R"
 TERMINAL_NODE = "T"
-EOL_NODE = "E"
 COMPOUND_NODE = "C"
-LONG_NODE = "L"
-ABBREVIATED_NODE = "A"
 DUPLICATE_NODE = "D"
 
 INFINITE_DEPTH = 99
-MAX_EOL_HEIGHT = 3
-MAX_DUP = 6      # do not generate duplication tuples for more than this many repetitions
+MAX_TREE_HEIGHT = 3
+# MAX_DUP = 6      # do not generate duplication tuples for more than this many repetitions
 
 EDGES = ['n', 'a', 'b', 'c', 'o', 'u', 'd', 'w', 'e']
 VERTEX_TYPES = 'VNOMFRT' # W => wildcard symbol (unknown type)
@@ -81,6 +73,8 @@ PgmMatch = re.compile(r'^.*/([^/]*.py)"(.*)')
 
 def parse_file(docid="",
                context=False,
+               slt=True,
+               opt=False,
                synonyms=False,
                dups="",
                wild_dups="",
@@ -121,20 +115,22 @@ def parse_file(docid="",
                         # returns [context0,math1,context1,math2,...,mathn,contextn]
                         for token in tokens:
                             if token.startswith("<math"):
-                               ex = convert_math_expression(mathID,lineNum,token,
+                                ex = convert_math_expression(mathID,lineNum,token,
+                                                     slt=slt, opt=opt,
                                                      synonyms=synonyms,
                                                      dups=dups,
                                                      wild_dups=wild_dups,
                                                      window_size=window_size,
+
                                                      loc_info=loc_info,
                                                      anchors=anchors,
                                                      include_latex=include_latex)
-                               if ex != "":
-                                   print(ex, file=fout, end="")
-                                   if not context:
-                                       print(file=fout) # separate math expression on individual lines
-                            else: # must be printable context
-                               print(token, file=fout, end="")
+                                if ex != "":
+                                    print(ex, file=fout, end="")
+                                    if not context:
+                                        print(file=fout) # separate math expression on individual lines
+                            else:
+                                print(token, file=fout, end="")
                     except Exception as err:
                         print("Error in data file or query "+ mathID +", line "+ str(lineNum), file=sys.stderr)
                         stack = traceback.format_exc().split("\n")
@@ -148,6 +144,8 @@ def parse_file(docid="",
                     print(line,file=fout,end="")
 
 def convert_math_expression(mathID,lineNum,mathml,
+                            slt=True,
+                            opt=False,
                             synonyms=False,
                             dups="",
                             wild_dups="",
@@ -159,6 +157,8 @@ def convert_math_expression(mathID,lineNum,mathml,
 
     Parameters:
         mathml: the math expression (string)
+        (slt): True if SLT features to be extracted
+        (opt): True if OPT features to be extracted
         (synonyms): True to expand nodes to include wildcard expansion (during indexing only)
         (dups): string of node types to include duplicated symbols' relative locations
         (wild_dups): string of node types to include wildcards for duplicated symbols' relative locations
@@ -170,46 +170,44 @@ def convert_math_expression(mathID,lineNum,mathml,
         : a string of the math tuples
     """
     try:
-        pmml = MathExtractor.isolate_pmml(mathml)
-        if pmml is None:
-            return ""
+        pmml = MathExtractor.isolate_mml(mathml,wants_cmml=False) if slt else None
+        cmml = MathExtractor.isolate_mml(mathml,wants_cmml=True) if opt else None       
     except: # MathML is mal-formed
-        print("Badly formed MathML expression: " + mathml,file=sys.stderr)
+        print("Badly formed MathML expression in data file or query "+ mathID +", line " + str(lineNum) + ": " + mathml,file=sys.stderr)
         return ""
 
-    # convert tree of MathML nodes to SLT
-    tree_root = MathSymbol.parse_from_mathml(pmml)
-    latex = pmml.attrib.get('alttext')
-    if not latex:
-       latex = ""
-
-    if tree_root is not None:
-        height = tree_root.get_height(max=MAX_EOL_HEIGHT) # only measure up to max
-        eol_check = False
-        if height < MAX_EOL_HEIGHT:
-            eol_check = (EOL_NODE in loc_info)
+    # convert MathML nodes to SLT and/or OPT
+    tree_root = [MathSymbol.tree_from_mathml(pmml) if pmml else None,
+                 MathSymbol.tree_from_mathml(cmml) if cmml else None]
+    ret_list = []
+    cmml = False
+    for t in tree_root:
+        print("tree: " + (t.toString() if t else "None"))
+        if not t:
+            cmml = True  # next tree is for cmml
+            continue
+        # height = t.get_height() 
         repDict = {}  # dictionary to collect repetitions if necessary
-        pairs = tree_root.get_pairs("",    # root's location is empty string
+        pairs = t.get_features("",    # root's location is empty string
                                     window_size,
-                                    eol=eol_check,
+                                    cmml = cmml,
                                     symbol_pairs=(SYMBOL_PAIR_NODE in loc_info),
-                                    compound_symbols=(COMPOUND_NODE in loc_info),
-                                    terminal_symbols=(TERMINAL_NODE in loc_info),
-                                    edge_pairs=(EDGE_PAIR_NODE in loc_info),
-                                    unbounded=(LONG_NODE in loc_info),
+                                    compound_symbols=(COMPOUND_NODE in loc_info and not cmml),
+                                    terminal_symbols=(TERMINAL_NODE in loc_info and not cmml),
                                     repetitions= dups + wild_dups,
                                     repDict=repDict,
-                                    max_dup=MAX_DUP,
-                                    shortened=(ABBREVIATED_NODE in loc_info),
+                                    # max_dup=MAX_DUP,
                                     anchors=anchors)
+
         """
         # not relevant if all ***closest*** pairs are used
         # check whether any duplication tuples were omitted max number of repetitions exceeded
         for k in repDict:
             if len(repDict[k]) > MAX_DUP:
                 print("Maximum number of duplication tuples per symbol exceeded in data file or query "+ mathID +", line "+ str(lineNum), file=sys.stderr)
-                break
+                    break
         """
+
         # all tokens returned include their location
         # replace query wildcards and expand with wildcards if synonyms
         node_list = [expanded_node
@@ -219,16 +217,18 @@ def convert_math_expression(mathID,lineNum,mathml,
         # create a list of nodes with locations, as specified
         nodes_payloads = expand_nodes_with_location(node_list, loc_info)
 
-        node_list = [format_node(node) for node in nodes_payloads]
-        # add start and end strings
+        if not pairs:   # nothing returned for non-empty tree, so return the root
+            nodes_payloads.append((t.tag, "!0"))
 
-        if include_latex:
-           node_list.append(START_ALT + latex + END_ALT)
+        ret_list = ret_list + [format_node(node) for node in nodes_payloads]
+        cmml = True
 
-        node_list = [START_TAG] + node_list + [END_TAG]
-        return " ".join(node_list)
-    else:
-        return ""
+    # add start and end strings
+    if include_latex and pmml:
+        latex = pmml.attrib.get('alttext') if pmml else ""
+        ret_list.append(START_ALT + latex + END_ALT)
+    ret_list = [START_TAG] + ret_list + [END_TAG]
+    return " ".join(ret_list)
 
 def expand_node_with_wildcards(node, dups, wild_dups, synonyms):
     """Returns a list of nodes that replaces wildcards in all non-duplicates and
@@ -248,7 +248,7 @@ def expand_node_with_wildcards(node, dups, wild_dups, synonyms):
             if type[2:3] in wild_dups or synonyms or type == WILDCARD_MOCK:
                 temp[1] = type        # augment with wildcard
                 results.append(tuple(temp))
-    elif node_type == SYMBOL_PAIR_NODE or node_type == ABBREVIATED_NODE: 
+    elif node_type == SYMBOL_PAIR_NODE: 
             if check_wildcard(temp[0]):
                 if not check_wildcard(temp[1]): # (?a,y,n)
                     temp[0] = WILDCARD_MOCK
@@ -275,20 +275,8 @@ def expand_node_with_wildcards(node, dups, wild_dups, synonyms):
                 if synonyms:
                     temp[0] = make_wild(temp[0])
                     results.append(tuple(temp))
-    elif node_type == EDGE_PAIR_NODE:
-            if check_wildcard(node[2]):         # (e,f,?a)
-                temp[2] = WILDCARD_MOCK
-                results.append(tuple(temp))
-            else:                               # (e,f,x)
-                results.append(node)
-                if synonyms:
-                    temp[2] = make_wild(temp[2])
-                    results.append(tuple(temp))
-    elif node_type == TERMINAL_NODE or node_type == EOL_NODE:
+    elif node_type == TERMINAL_NODE:
             if not check_wildcard(node[0]):     # (x,!0,..)
-                results.append(node)
-    elif node_type == LONG_NODE:
-            if not check_wildcard(node[0]) and not check_wildcard(node[1]): # (x,y)
                 results.append(node)
     return results
 
@@ -298,20 +286,13 @@ def determine_node(node):
      Returns the type of node
     """
     if node[1] == "!0":
-        if len(node) == 4:  # (x,!0,n,l)
-            node_type = EOL_NODE
-        else:
-            node_type = TERMINAL_NODE
+        node_type = TERMINAL_NODE
     elif ("[" in node[1] and "]" in node[1]) or isinstance(node[1], list): # (x,[y,z],l)
         node_type = COMPOUND_NODE
-    elif node[0] in EDGES and node[1] in EDGES: # (e,e,x,l)
-        node_type = EDGE_PAIR_NODE
     elif node[0] == REP_TAG: # (r,x,p,l) or (r,x,p,p,l)
         node_type = DUPLICATE_NODE
-    elif len(node) == 3: # (x,x,l)
-        node_type = LONG_NODE
     else: # (x,x,e,l)
-        node_type = SYMBOL_PAIR_NODE # or could be ABBREVIATED_NODE !
+        node_type = SYMBOL_PAIR_NODE
     return node_type
 
 def make_wild(label):
@@ -335,9 +316,9 @@ def check_wildcard(term):
     """Returns True if term is a wildcard term
     """
     if term.startswith("?"):
-        return True
+    	return True
     else:
-        return False
+    	return False
 
 def expand_nodes_with_location(nodes, loc_info):
     """Returns a list of nodes where each tuple is expanded to one or two tuples:
@@ -345,14 +326,14 @@ def expand_nodes_with_location(nodes, loc_info):
 
     Parameters:
         nodes: the list of nodes that have been produced (loc != 0), with their locations
-    loc_info: for each node type, negative => just locations, |l| = maximum number of nodes on path
+	loc_info: for each node type, negative => just locations, |l| = maximum number of nodes on path
 
     Returns:
         result: the list of nodes after expansion
     """
     result = []
     for node in nodes:
-        node_type = determine_node(node) # N.B. ABBREVIATED_NODE is identified as SYMBOL_PAIR_NODE !
+        node_type = determine_node(node) 
         depth = loc_info[node_type] # N.B. Node types that are not in loc_info cannot occur in nodes
         loc_len = 1 + len(MathSymbol.decode_loc(node[-1])) # number of nodes on path
         result.append(pop_location(node))
@@ -418,9 +399,8 @@ if __name__ == "__main__":
 
     descp = "Convert - MathML to Math Tuples"
     epilog = '''Codes:
-        *tuple types  = S(ymbol pairs), R(elationship edge pairs), 
-                        T(erminal symbols), E(nd of line symbols), C(ompound symbols),
-                        L(ong pairs empty), A(bbreviated long pairs),
+        *tuple types  = S(ymbol pairs),  
+                        T(erminal symbols), C(ompound symbols),
                         D(uplicate symbols)
         *tuple incl'n : (i <= 0) => include no tuples of this type
                         (0 < i < 99) => augment with location tuples whenever path length has fewer that i nodes 
@@ -448,46 +428,36 @@ if __name__ == "__main__":
                         default=1,
                         type=int,
                         help='The size of the window for symbol pairs (99 => unlimited); default = 1')
-    parser.add_argument("-S", "--symbol_pairs",
+    parser.add_argument("-I",'--ignore-slt',
+                        dest="SLT",
+                        action="store_false",
+                        help="Ignore Presentation MML; default => false",
+                        default=True)
+    parser.add_argument("-O",'--opt',
+                        dest="OPT",
+                        action="store_true",
+                        help="Process Content MML; default => false",
+                        default=False)
+    parser.add_argument("-P", "--symbol_pairs",
                         dest="symbol_pairs",
                         help="Include Symbol pairs and/or locations*",
                         default=8,
-                        type = int)
-    parser.add_argument("-R",'--edge_pairs',
-                        dest="edge_pairs",
-                        help="Include Relationship edge pairs and/or locations*",
-                        default=0,
-                        type = int)
+			type = int)
     parser.add_argument("-T",'--terminal_symbols',
                         dest="terminal_symbols",
                         help="Include Terminal symbols and/or locations*",
                         default=8,
-                        type = int)
-    parser.add_argument("-E",'--eol',
-                        dest="eol",
-                        help="Include End-of-line symbols and/or locations*",
-                        default=0,
-                        type = int)
+			type = int)
     parser.add_argument("-C",'--compound_symbols',
                         dest="compound_symbols",
                         help="Include Compound symbols and/or locations*",
                         default=8,
-                        type = int)
-    parser.add_argument("-L",'--long_pairs',
-                        dest="long",
-                        help="Include Long pairs without relationships and/or locations*",
-                        default=0,
-                        type = int)
-    parser.add_argument("-A",'--abbreviated',
-                        dest="abbreviated",
-                        help="Include Abbreviated relationships for long pairs and/or locations*",
-                        default=0,
-                        type = int)
+			type = int)
     parser.add_argument("-D",'--duplicate_nodes',
                         dest="duplicate_nodes",
                         help="Include Duplicate symbols and/or locations*",
                         default=8,
-                        type = int)
+			type = int)
     parser.add_argument("-docid",'--docid',
                         dest="docid",
                         help="String preceding each document identifier; '' => no docid",
@@ -533,19 +503,15 @@ if __name__ == "__main__":
             anchors = []
         else:
            anchors = [":=","<","=",">","≠","≤","≥",
-               "∝","∼","≅","≈","≡",
-               "→","↔","↦","⇒","⇔","⟹",
-               "⊂","⊆","⊈"]
+			   "∝","∼","≅","≈","≡",
+			   "→","↔","↦","⇒","⇔","⟹",
+			   "⊂","⊆","⊈"]
     else:
         anchors = []
     # store location directives
     loc_info = {SYMBOL_PAIR_NODE: args.symbol_pairs,
-                EDGE_PAIR_NODE: args.edge_pairs,
                 TERMINAL_NODE: args.terminal_symbols,
-                EOL_NODE: args.eol,
                 COMPOUND_NODE: args.compound_symbols,
-                LONG_NODE: args.long,
-                ABBREVIATED_NODE: args.abbreviated,
                 DUPLICATE_NODE: duplicate_nodes}
     # remove non-positive entries from loc_info
     dels = []
@@ -557,6 +523,8 @@ if __name__ == "__main__":
 
     parse_file(docid=args.docid,
                context=args.context,
+               slt=args.SLT,
+               opt=args.OPT,
                synonyms=args.synonyms,
                dups=dups,
                wild_dups=wild_dups,

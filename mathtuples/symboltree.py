@@ -17,11 +17,11 @@
     You should have received a copy of the GNU General Public License
     along with Tangent.  If not, see <http://www.gnu.org/licenses/>.
 
-    Contact:
+    For Tangent, contact:
         - David Stalnaker: david.stalnaker@gmail.com
         - Richard Zanibbi: rlaz@cs.rit.edu
     Modified by Nidhin Pattaniyil, 2014
-    Modified by Frank Tompa, 2015
+    Modified by Frank Tompa, 2015, 2023
     Packaged with mathtuples. Contact:
         - Frank Tompa, fwtompa@uwaterloo.ca
 """
@@ -31,15 +31,12 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 import sys
 
-try:
-    from mathtuples.mathsymbol import MathSymbol
-except ImportError:
-    from mathsymbol import MathSymbol
-
-ET.register_namespace('', 'http://www.w3.org/1998/Math/MathML')
+from .mathsymbol import MathSymbol
+from .mathml import MathML
 
 __author__ = 'Nidhin, FWTompa, KDavila'
 
+ET.register_namespace('', MathML.namespace_URL)
 ST_MAX_RECURSION_DEPTH = 2500
 
 class SymbolTree:
@@ -69,7 +66,7 @@ class SymbolTree:
         """
 
         pairs = []
-        for s1, s2, relationship, location in self.root.get_pairs('',window):
+        for s1, s2, relationship, location in self.root.get_features('',window):
             p='\t'.join([s1, s2, relationship, location])
             if not (len(p)>200):
                 pairs.append(p)
@@ -81,8 +78,47 @@ class SymbolTree:
 ##        return self.root.get_symbols()
 
 
-    def tostring(self): # added to get printable version of tree (FWT)
-        return self.root.tostring() if self.root else ""
+    def toString(self): # added to get printable version of tree (FWT)
+        return self.root.toString() if self.root else ""
+
+    @classmethod
+    def __create_opt_from_string(cls, tree_substring):
+        # assume first and last characters are [ and ]
+        # read name until , [, or ] appears
+        # print("sub: " + tree_substring)
+
+        pos = 1
+        while not tree_substring[pos] in ["[", "]"]:
+            if tree_substring[pos] == "," and pos > 1:
+                break
+
+            pos += 1
+
+        label = tree_substring[1:pos]
+        root = SemanticSymbol(label)
+
+        # check the case...
+        children = []
+        while tree_substring[pos] != "]":
+            if tree_substring[pos] == ",":
+                # get child ...
+                child_relation = tree_substring[pos + 1]
+                child_end = cls.__find_matching_bracket(tree_substring, pos + 2)
+                child_text = tree_substring[(pos + 2):child_end]
+                pos = child_end
+
+                child_node = cls.__create_opt_from_string(child_text)
+                child_node.parent = root
+
+                children.append(child_node)
+
+        root.children = children
+
+        if tree_substring != root.toString():
+            print("Mismatch: " + tree_substring + " -> " + root.toString(), flush=True)
+            exit(1)
+
+        return root
 
     #added by KMD for parsing from SLT tree strings
     @classmethod
@@ -165,8 +201,8 @@ class SymbolTree:
         
         root = MathSymbol(label, current_next, current_above, current_below, current_over, current_under,
                           current_within, current_pre_above, current_pre_below, current_element)
-        if tree_substring != root.tostring():
-            print("Mismatch: " + tree_substring + " -> " + root.tostring(), flush=True)
+        if tree_substring != root.toString():
+            print("Mismatch: " + tree_substring + " -> " + root.toString(), flush=True)
             exit(1)
             
         return root

@@ -1,8 +1,8 @@
 ﻿"""
     Tangent
-    Copyright (c) 2013 David Stalnaker, Richard Zanibbi
+    Copyright (c) 2013 David Stalnaker, Richard Zanibbi, Kenny Davila
 
-    This file is part of Tangent.
+    This file is part of Tangent and Tangent-S.
 
     Tangent is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,12 +17,17 @@
     You should have received a copy of the GNU General Public License
     along with Tangent.  If not, see <http://www.gnu.org/licenses/>.
 
-    Contact:
+    Note, however, that Tangent-S source code (used for converting
+    Content MathML to OpT trees), data and results were released under
+    a Non-Commercial Creative Commons License (see the CCL-LICENSE file).  
+
+    For Tangent, contact:
         - David Stalnaker: david.stalnaker@gmail.com
         - Richard Zanibbi: rlaz@cs.rit.edu
 
     Modified by Nidhin Pattaniyil, 2014
-    Modified by Frank Tompa, 2015
+    Modified by Kenny Davila, 2014
+    Modified by Frank Tompa, 2015, 2024-5
     Packaged with mathtuples. Contact:
         - Frank Tompa, fwtompa@uwaterloo.ca
 """
@@ -32,50 +37,110 @@ from sys import stderr
 import string
 import sys
 import re
-from html.parser import HTMLParser #RZ
 import symbol
 import os
 
-try:
-   from mathtuples.exceptions import UnknownTagException
-   from mathtuples.mathml import MathML
-except ImportError:
-   from exceptions import UnknownTagException
-   from mathml import MathML
+from .exceptions import UnknownTagException
+from .mathml import MathML
 
 REP_TAG = "!REP!"
 MAX_HEIGHT = 100 # do not calculate tree heights larger than this value
 
 
-__author__ = 'Nidhin, FWTompa'
+__author__ = 'Nidhin, KDavila, FWTompa'
 
 # many changes throughout to encode simplified and more consistent node and edge structure. FWT
 
+'''
+<math display="block" alttext="a+F(a,b)" class="ltx_Math" id="m1">
+  <semantics id="m1a">
+    <mrow xref="m1.7.cmml" id="m1.7">
+      <mi xref="m1.4.cmml" id="m1.4">a</mi>
+      <mo xref="m1.5.cmml" id="m1.5">+</mo>
+      <mrow xref="m1.6.cmml" id="m1.6d">
+        <mi xref="m1.1.cmml" id="m1.1">F</mi>
+        <mo xref="m1.6.cmml" id="m1.6e">&ApplyFunction;</mo>    <!-- &#8289; -->
+        <mrow xref="m1.6.cmml" id="m1.6c">
+          <mo xref="m1.6.cmml" id="m1.6" stretchy="false">(</mo>
+          <mi xref="m1.2.cmml" id="m1.2">a</mi>
+          <mo xref="m1.6.cmml" id="m1.6a">,</mo>
+          <mi xref="m1.3.cmml" id="m1.3">b</mi>
+          <mo xref="m1.6.cmml" id="m1.6b" stretchy="false">)</mo>
+        </mrow>
+      </mrow>
+    </mrow>
+    <annotation-xml id="m1b" encoding="MathML-Content">
+      <apply xref="m1.7" id="m1.7.cmml">
+        <plus xref="m1.5" id="m1.5.cmml"/>
+        <ci xref="m1.4" id="m1.4.cmml">a</ci>
+        <apply xref="m1.6d" id="m1.6.cmml">
+          <ci xref="m1.1" id="m1.1.cmml">F</ci>
+          <ci xref="m1.2" id="m1.2.cmml">a</ci>
+          <ci xref="m1.3" id="m1.3.cmml">b</ci>
+        </apply>
+      </apply>
+    </annotation-xml>
+    <annotation id="m1c" encoding="application/x-tex">a+F(a,b)</annotation>
+  </semantics>
+</math>
+
+-> SLT: V!a(n(+n(V!F(n(M!()2x1(w(V!a(e(V!b)))))))))
+   OPT: U!+(-(V!a),-(A!F(-(V!A),-(V!b))))
+  
+'''
+
 class MathSymbol:
     """
-    Symbol in a symbol tree
+    Node in a math tree, for both layout_symbol (SLT) and semantic_symbol (OpT)
     """
 
-    def __init__(self, tag, next_elem=None, above=None, below=None, over=None, under=None, within=None,
-                 pre_above=None, pre_below=None, element=None, mathml=[]): # FWT
-                 
-        # todo: improve representation (and equivalences) by recognizing and preserving fence="true" and separator="true"
+    def __init__(self, tag, children=None, 
+                 next_elem=None, above=None, below=None, over=None, under=None, within=None,
+                 pre_above=None, pre_below=None, element=None, in_label='-'): # FWT
         self.tag = tag
-        self.next = next_elem
-        self.above = above
-        self.below = below
-        self.over = over #FWT
-        self.under = under #FWT
-        self.within = within
-        self.pre_above = pre_above #FWT
-        self.pre_below = pre_below #FWT
-        self.element = element # FWT
-        self.mathml = mathml  #KMD
+        if children:
+            self.children = children
+        else:
+            self.children = []
+        self.in_label = in_label
+        if next_elem: next_elem.in_label= 'n'; self.children.append(next_elem)
+        if above: above.in_label= 'a'; self.children.append(above)
+        if below: below.in_label= 'b'; self.children.append(below)
+        if over: over.in_label= 'o'; self.children.append(over)
+        if under: under.in_label= 'u'; self.children.append(under)
+        if pre_above: pre_above.in_label= 'c'; self.children.append(pre_above)
+        if pre_below: pre_below.in_label= 'd'; self.children.append(pre_below)
+        if within: within.in_label= 'w'; self.children.append(within)
+        if element: element.in_label= 'e'; self.children.append(element)
+        
+    def get_size(self):
+        return 1 + sum(map(get_size,self.children))
 
-    def get_symbols(self, label, window, unbounded=False):
-        return MathSymbolIterator(self, label, window, unbounded=unbounded)
+    def get_height(self):
+        return 1 + max(map(get_height,self.children))
 
-    ###########################################################################################################
+    def is_leaf(self):
+        return (len(self.children) == 0)
+
+    def get_tree_leaves(self):
+        if self.is_leaf():
+            return [self]
+        else:
+            leaves = []
+            for child in self.children:
+                leaves.extend(get_tree_leaves(child))
+        return leaves
+
+    @staticmethod
+    def Copy(other):
+        local = MathSymbol(other.tag,in_label = other.in_label)
+        if other.children is not None:
+            local.children = []
+            for original_child in other.children:
+                local.children.append(MathSymbol.Copy(original_child))
+        return local
+
+  ###########################################################################################################
     # Run length encoding and decoding -- adapted from http://rosettacode.org/wiki/Run-length_encoding#Python #
     ###########################################################################################################
     @classmethod                                                                                              #
@@ -113,26 +178,20 @@ class MathSymbol:
         else:
             return cls.rldecode(loc)
 
+    def get_symbols(self, label, window, unbounded=False):
+        return MathSymbolIterator(self, label, window, unbounded=unbounded)
 
-    def get_height(self, height=0,max=MAX_HEIGHT):
-        if height >= max: # do not measure trees higher than max
-           return max
-        children = [(self.next, 'n'), (self.above, 'a'),
-                    (self.below, 'b'), (self.pre_above, 'c'),
-                    (self.over, 'o'), (self.under, 'u'),
-                    (self.pre_below, 'd'), (self.within, 'w'),
-                    (self.element, 'e')]
-        max_height = height
-        for child, __ in children:
-            if child:
-                temp = child.get_height(height=height+1)
-                if temp + height > max_height:
-                    max_height = temp + height
-        return max_height
+    def toString(self):
+        s = ""
+        for c in self.children:
+            if c:
+                s = s + "," + c.toString()
+        return(self.in_label + "(" + self.tag + ":" + s[1:] + ")")
 
-    def get_pairs(self,
+    def get_features(self,
                   prefix,
                   window,
+                  cmml=False,
                   symbol_pairs=True,
                   compound_symbols=False,
                   terminal_symbols=False,
@@ -141,17 +200,19 @@ class MathSymbol:
                   unbounded=False,
                   repetitions="",
                   repDict = {},
-                  max_dup = 0,
+                  # max_dup = 0,
                   shortened=False,
                   anchors=[]):
         """
-        Return the pairs in the symbol tree
+        Return the features in the symbol tree, as indicated by arguments
 
         :param prefix: unencoded path from the root or nearest anchor to self (for location id)
         :type  prefix: string
         :param window: the max distance between symbol pairs to include
         :type  window: int
-        :param compound_pairs: If True will include compout pairs (N, {e})
+        :param symbol_pairs: If True will include symbol pairs (N, N, e)
+        :type symbol_pairs: boolean
+        :param compound_pairs: If True will include compound pairs (N, {e})
         :type compound_pairs: boolean
         :param terminal_symbols: If True will include terminal symbols (N)
         :type terminal_symbols: boolean
@@ -159,12 +220,12 @@ class MathSymbol:
         :type edge_pairs: boolean
         :param unbounded: If True will include all pairs of nodes (N, N)
         :type unbounded: boolean
-        :param repetitions: string of node labels to include all C(n,2) pairs of locations for each repeated node
+        :param repetitions: string of node labels to include all n pairs of locations for each repeated node
         :type repetitions: string
         :param repDict: Dictionary mapping symbols to locations found so far
         :type repDict: dictionary mapping strings to strings
-        :param max_dup: maximum number of repetitions to consider for duplicated node labels
-        :type max_dup: int
+        # :param max_dup: maximum number of repetitions to consider for duplicated node labels
+        # :type max_dup: int
         :param shortened: If True will shorten the path for various pairs
         :type shortened: boolean
         :param anchors: List of symbols that reset prefix to empty
@@ -208,21 +269,18 @@ class MathSymbol:
              return [] 
         loc = self.encode_loc(prefix)
         ret = []
-        children = [(self.next, 'n'), (self.above, 'a'),
-                    (self.below, 'b'), (self.pre_above, 'c'),
-                    (self.over, 'o'), (self.under, 'u'),
-                    (self.pre_below, 'd'), (self.within, 'w'),
-                    (self.element, 'e')]
+
         if compound_symbols:
             # add the compound feature tuple - (N, {e1,e2, ...})
-            available_edges = [label for child, label in children
-                               if child is not None]
+            available_edges = [child.in_label for child in self.children if child is not None]
             if len(available_edges) > 1:
-                # if less than one then information captured
+                # if less than two then information captured
                 # by symbol pairs
                 ret.append((self.tag, str(available_edges), loc))
-        for child, label in children:
+
+        for child in self.children:
             if child:
+                label=child.in_label # if not cmml else self.in_label # for OPTs
                 if symbol_pairs:
                     ret.extend(filter(lambda x: x is not None,
                                       map(mk_helper(loc),
@@ -235,8 +293,9 @@ class MathSymbol:
                     new_prefix = ""
                 else:
                     new_prefix = prefix + label
-                ret.extend(child.get_pairs(new_prefix,
+                ret.extend(child.get_features(new_prefix,
                                            window,
+                                           cmml=cmml,
                                            eol=eol,
                                            symbol_pairs=symbol_pairs,
                                            compound_symbols=compound_symbols,
@@ -245,7 +304,7 @@ class MathSymbol:
                                            unbounded=unbounded,
                                            repetitions=repetitions,
                                            repDict=repDict,
-                                           max_dup=max_dup,
+                                           # max_dup=max_dup,
                                            shortened=shortened,
                                            anchors=anchors))
         if terminal_symbols and len(ret) == 0:
@@ -256,14 +315,15 @@ class MathSymbol:
             ret.append((self.tag, "!0", "n", loc))
         if edge_pairs and len(prefix) > 0:
             # add the pairs of edges on this node
-            ret.extend([(prefix[-1], label, self.tag, loc)
-                        for child, label in children
-                        if child and label != "w"])
+            ret.extend([(prefix[-1], child.in_label, self.tag, loc)
+                        for child in children
+                        if child and child.in_label != "w"])
+
         if get_type(self.tag) in repetitions:
             # insert symbol into dictionary and check for repetitions
             locations = repDict.setdefault(self.tag,[]) # retrieve previous positions
             """
-            # use all pairs up to max_dup instances
+            # no longer use all pairs up to max_dup instances
             if len(locations) < max_dup: # only generate tuples for small number of reps
                 # loc is the location of the current symbol and prefix is the same but unencoded
                 for pos in locations:
@@ -286,6 +346,136 @@ class MathSymbol:
             repDict[self.tag].append(prefix)
         return ret
 
+    """
+    Symbol in a symbol tree
+    """
+
+
+    def field(self,f):
+        for (pos,child) in enumerate(self.children):
+           if not child:
+              del self.children[pos]
+              continue
+           if child.in_label==f:
+               return child
+        return None
+
+    def next(self):
+        return self.field('n')
+
+    def above(self):
+        return self.field('a')
+
+    def below(self):
+        return self.field('b')
+
+    def over(self):
+        return self.field('o')
+
+    def under(self):
+        return self.field('u')
+
+    def pre_above(self):
+        return self.field('c')
+
+    def pre_below(self):
+        return self.field('d')
+
+    def within(self):
+        return self.field('w')
+
+    def element(self):
+        return self.field('e')
+
+    def set_field(self,newchild,f):
+        if (newchild == None):
+           self.del_field(f)
+           return
+        newchild.in_label = f
+        for (pos,child) in enumerate(self.children):
+           if not child:
+              del self.children[pos]
+              continue
+           if child.in_label == f:
+              self.children[pos] = newchild	# replace by new value
+              return
+        self.children.append(newchild)
+
+    def set_next(self,newchild):
+        self.set_field(newchild,'n')
+
+    def set_above(self,newchild):
+        self.set_field(newchild,'a')
+
+    def set_below(self,newchild):
+        self.set_field(newchild,'b')
+
+    def set_over(self,newchild):
+        self.set_field(newchild,'o')
+
+    def set_under(self,newchild):
+        self.set_field(newchild,'u')
+
+    def set_pre_above(self,newchild):
+        self.set_field(newchild,'c')
+
+    def set_pre_below(self,newchild):
+        self.set_field(newchild,'d')
+
+    def set_within(self,newchild):
+        self.set_field(newchild,'w')
+
+    def set_element(self,newchild):
+        self.set_field(newchild,'e')
+
+    def set_label(self,f):
+        #if (self.in_label == '-'):
+           self.in_label = f
+           #return True
+        #return False
+
+    def del_field(self,f):
+        for (pos,child) in enumerate(self.children):
+           if not child:
+              del self.children[pos]
+              continue
+           if child.in_label == f:
+              del self.children[pos]
+              return
+
+    def del_next(self):
+        self.del_field('n')
+
+    def del_above(self):
+        self.del_field('a')
+
+    def del_below(self):
+        self.del_field('b')
+
+    def del_over(self):
+        self.del_field('o')
+
+    def del_under(self):
+        self.del_field('u')
+
+    def del_pre_above(self):
+        self.del_field('c')
+
+    def del_pre_below(self):
+        self.del_field('d')
+
+    def del_within(self):
+        self.del_field('w')
+
+    def del_element(self):
+        self.del_field('e')
+
+    """
+    ----------------------------------------------------------------
+    helper functions to deal with implied matrices
+    ----------------------------------------------------------------
+    """
+
     @classmethod
     def list2matrix(cls, children, separators, parent_element):
         """
@@ -304,11 +494,10 @@ class MathSymbol:
             if node.tag.startswith('M!'):
                 if node.tag[2] in '({|&∥': # inner matrix has fence characters already
                     return False
-                return not (node.next or node.above or node.below or node.over or node.under
-                            or node.pre_above or node.pre_below) # inner matrix has attachment
+                return (len(node.children) == 0) # inner matrix has attachment
             else:
                 return False
-                
+            
         if len(children) < 4 and invisible_matrix(children[1]): # fenced matrix (but omit closing tag, as below)
             fence = children[0].tag
             if len(children) == 3:
@@ -318,18 +507,18 @@ class MathSymbol:
 
             return children[1]
         else:
-            mnode = cls('M!',mathml=[parent_element])    # mark as if empty matrix
+            mnode = cls('M!')    # mark as if empty matrix
             num_args = 1
             if (len(children) > 2):
                 if not separates(children[1].tag): # second child is not a separator
-                    mnode.within = children[1]
+                    mnode.set_within(children[1])
                 else:
-                    mnode.within = cls('W!') # does this need the mathml attribute set?
+                    mnode.set_within(cls('W!')) # does this need the mathml attribute set?
                     if len(children) == 3:
-                        mnode.within.next = children[1] # set the next field to be the separator
+                        mnode.within.set_next(children[1]) # set the next field to be the separator
                     else:
                         children.insert(1,None) # insert a dummy element as first child so that separator is next
-                elem = mnode.within # mark the start of the matrix element
+                elem = mnode.within() # mark the start of the matrix element
                 expr = elem # mark the start of the expression (content of matrix element)
                 # invariants:
                 #     mnode references the matrix node
@@ -348,13 +537,13 @@ class MathSymbol:
                             #elem = elem.element.element # move on to the next matrix element
 
                             # Modified: remove separators, but nodes after separators are element
-                            elem.element = expr.next.next
-                            expr.next = None
-                            elem = elem.element
+                            elem.set_element(expr.next().next())
+                            expr.del_next()
+                            elem = elem.element()
 
                             expr = elem
                         else:      
-                            expr = expr.next
+                            expr = expr.next()
                 else: # (fence, expr, expr, ... expr, fence)
                     for atom_num in range(2,len(children)-1):         # no nested mrow: break when argument is a separator
                         if separates(children[atom_num].tag):
@@ -364,19 +553,19 @@ class MathSymbol:
                             #elem = elem.element
 
                             # Modified: do not link in the separator, just skip it
-                            while expr.next:
-                                expr = expr.next
+                            while expr.next():
+                                expr = expr.next()
                             # expr.next = children[atom_num]
                             # expr = expr.next
                         else:
                             if separates(children[atom_num-1].tag): # previous element was a separator
-                                elem.element = children[atom_num]
-                                elem = elem.element
+                                elem.set_element(children[atom_num])
+                                elem = elem.element()
                                 expr = elem
                             else: # no separator: link to the previous expression
-                                while expr.next:
-                                    expr = expr.next
-                                expr.next = children[atom_num]
+                                while expr.next():
+                                    expr = expr.next()
+                                expr.set_next(children[atom_num])
                 mnode.tag = 'M!' + children[0].tag + children[-1].tag + '1x' + str(num_args) # as if fenced 1xn matrix
             else:
                 mnode.tag = 'M!' + children[0].tag + (children[-1].tag if len(children)>1 else '')
@@ -395,29 +584,29 @@ class MathSymbol:
         (rows2,x2,cols2) = elem2.tag[2:].partition('x')
         if str.isdecimal(rows1) and rows1 == rows2:   # both matrices have the same number of rows and no brackets
             # merge them
-            content1 = elem.within
-            content2 = elem2.within
-            rows1 = int(rows1) # convert to numeric)
+            content1 = elem.within()
+            content2 = elem2.within()
+            rows1 = int(rows1) # convert to numeric
             cols1 = int(cols1)
             cols2 = int(cols2)
             for i in range(0,rows1):
                 for j in range(1,cols1):
-                    content1 = content1.element
-                content11 = content1.element # hold onto the first element of the next row
-                content1.element = content2  # insert elements from second matrix
+                    content1 = content1.element()
+                content11 = content1.element() # hold onto the first element of the next row
+                content1.set_element(content2)  # insert elements from second matrix
                 for j in range(1,cols2):
-                    content2=content2.element
-                content22 = content2.element # hold onto the first element of the next row
-                content2.element = content11 # finish linking in the row from second matrix
+                    content2=content2.element()
+                content22 = content2.element() # hold onto the first element of the next row
+                content2.set_element(content11) # finish linking in the row from second matrix
                 content2 = content22  # move to next element
                 content1 = content11
             elem.tag = 'M!' + rows2 + 'x' + str(cols1+cols2)
             return elem
         else:
             # concatenate them
-            while elem.next:
-                elem = elem.next
-            elem.next = elem2
+            while elem.next():
+                elem = elem.next()
+            elem.set_next(elem2)
             return elem2
 
 
@@ -435,38 +624,42 @@ class MathSymbol:
             elem = children[0]
             if elem:
                 num_cols = 1  # count the number of columns in the first row
-                while elem.element:
+                while elem.element():
                     num_cols += 1
-                    elem = elem.element
+                    elem = elem.element()
             else:
                 num_cols = 0 # row has no columns
         else:
             num_cols = 0 # no rows => no columns
-        root = cls('M!' + str(num_rows) + "x" + str(num_cols),mathml=[original_element])
+        root = cls('M!' + str(num_rows) + "x" + str(num_cols))
         if num_rows > 0: # elem points to last entry in first row (row 0)
-            root.within = children[0] if children[0] or len(children) == 1 else cls('W!')
+            root.set_within(children[0] if children[0] or len(children) == 1 else cls('W!'))
             # make all rows have the same number of elements:
             for i in range(1,len(children)):
-                 elem.element = children[i]  # link last element from row i-1 to first in row i
+                 elem.set_element(children[i])  # link last element from row i-1 to first in row i
                  for j in range(0,num_cols):
-                     if not elem.element:
-                         elem.element = cls("W!")
-                     elem = elem.element
-            elem.element = None
+                     if not elem.element():
+                         elem.set_element(cls("W!"))
+                     elem = elem.element()
+            elem.del_element()
         return root
     
+    """
+    ----------------------------------------------------------------
+    Converter from MathML to simplified tree
+    ----------------------------------------------------------------
+    """
+
     @classmethod
-    def parse_from_mathml(cls, elem):
+    def tree_from_mathml(cls, elem):
         """
-        Parse symbol tree from mathml using recursive descent
+        Convert symbol tree from mathml using recursive descent
         :param elem: a node in MathML structure on which an iterator is defined to select children
         :type  elem: a MathML node
-        :return: the root of the corresponding SLT, a list of roots, or None
+        :return: the root of the corresponding SLT or OpT (or a list of roots)
         :rtype:  MathSymbol
         """
 
-        #print(elem.tag,flush=True)
-        
         def ignore_tag(elem):  #FWT
             """
             invisible operators and whitespace to be omitted from SymbolTree
@@ -476,12 +669,14 @@ class MathSymbol:
             if elem is None:
                 return True
             elif elem.tag in ['W!', '']: # simple types with no values and no links
-                return not (elem.next or elem.above or elem.below or elem.over or elem.under
-                            or elem.within or elem.pre_above or elem.pre_below or elem.element)
+                return (len(elem.children) == 0)
             else:
                 return False
 
         def ensure(children,count):
+            """
+            check whether the number of children == count 
+            """
             if not children or len(children) != count:
                 return False
             else:
@@ -491,6 +686,9 @@ class MathSymbol:
                 return True
 
         def get_value(elem):
+            """
+            get contents inside element or "" if no content
+            """
             if not elem: # => there are no children (since elem cannot be None)
                 return clean(elem.text)
             else: # use the src attribute of the mglyph child
@@ -504,7 +702,7 @@ class MathSymbol:
 
         def clean(tag):
             """
-            :param tag: symbol to store in pairs
+            :param tag: symbol to store in trees
             :type  tag: string
             :return: stripped symbol with tabs, newlines, returns, spaces,
                      queries, commas, left and right brackets escaped
@@ -541,626 +739,764 @@ class MathSymbol:
                             # should be a negative number: combine nodes
                             children[0].tag = 'N!-' + children[1].tag[2:]
                         else:
-                            while elem.next:
-                                elem = elem.next
-                            elem.next = children[i]
-                            elem = elem.next
+                            while elem.next():
+                                elem = elem.next()
+                            elem.set_next(children[i])
+                            elem = elem.next()
                     return children[0]
             else:
-                return None
+                return cls("W!")	# nothing in the row
 
+        """
+        ---------------------------------------------------
+        Executable code for parsing MathML starts here:
+        ---------------------------------------------------
+        """
+        # print("text tag: " + elem.tag,flush=True)
         if not elem.tag.startswith('{'): # handle missing namespace declaration (FWT) -- should be reported as warning!
             elem.tag = MathML.namespace+elem.tag
+        children = list(map(cls.tree_from_mathml, elem))  # before continuing, perform the recursive descent to convert the children
 
-        if elem.tag == MathML.semantics:
-            children = list(elem)
-            if len(children) >= 1:
-                return cls.parse_from_mathml(children[0])
-            else:
-                return None
+        short_tag = elem.tag[len(MathML.namespace):]
 
-        elif elem.tag == MathML.mn:
-            content = get_value(elem)
-            return cls('N!' + content if content != '' else 'W!',mathml=[elem])
-        elif elem.tag == MathML.mo:  # future: improve representation (and equivalences) by recognizing and preserving fence="true" and separator="true"
-            return cls(get_value(elem),mathml=[elem])
-        elif elem.tag == MathML.mi:
-            content = get_value(elem)
-            return cls('V!' + content if content != '' else 'W!',mathml=[elem])
-        elif (elem.tag == MathML.mtext) or (elem.tag == MathML.ms):
-            content = get_value(elem)
-            return cls('T!' + content if content != '' else 'W!',mathml=[elem])  # to prevent accidental mis-typing
-        elif elem.tag == MathML.mspace:
-            return cls('W!',mathml=[elem])
+        """
+        ---------------------------------------------------
+            Presentation MathML tags
+        ---------------------------------------------------
 
-        elif (elem.tag == MathML.math) or (elem.tag == MathML.mrow)\
-          or (elem.tag == MathML.mstyle) or (elem.tag == MathML.mpadded)\
-          or (elem.tag == MathML.msrow) or (elem.tag == MathML.mscarries)\
-          or (elem.tag == MathML.maction):
-            return infer_mrow(elem,list(map(cls.parse_from_mathml, elem)))
-        elif elem.tag == MathML.mfrac:
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,2): # should never happen
-                return None
-            else:
-                return cls('F!',mathml=[elem],over=children[0],under=children[1])
-        elif elem.tag == MathML.msqrt:
-            children = list(map(cls.parse_from_mathml, elem))
-            root = cls('R!',mathml=[elem])
-            elem = infer_mrow(elem,children)
-            if elem:
-                root.within = elem
-            return root
-        elif elem.tag == MathML.mroot:
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,2): # should never happen
-                return None
-            else:
-                return cls('R!',mathml=[elem],pre_above=children[1],within=children[0])
-        elif elem.tag == MathML.merror:
-            children = list(map(cls.parse_from_mathml, elem))
-            root = cls('E!',mathml=[elem])
-            elem = infer_mrow(elem,children)
-            if elem is not None:
-                root.within = elem
-            return root
-        elif elem.tag == MathML.none or elem.tag == MathML.mphantom:
-            return cls("W!")
-        elif elem.tag == MathML.mfenced:  # treat like mrow (FWT)
-            children_map = filter(lambda x: not ignore_tag(x), list(map(cls.parse_from_mathml, elem)))
-            children = list(children_map)
-            separators = elem.attrib.get('separators', ',').split()
-            opening = elem.attrib.get('open', '(').replace("[","&lsqb;")
-            row = [cls(opening)]
-            if children:
-                row.append(children[0])
-            for i, child in enumerate(children[1:]):
-                row.append(cls(separators[min(i, len(separators) - 1)]))
-                row.append(child)
-            closing = elem.attrib.get('close', ')').replace("]","&rsqb;")
-            row.append(cls(closing))
-            return cls.list2matrix(row, separators, elem)
-        elif elem.tag == MathML.menclose:
-            root = cls(elem.attrib.get('notation', 'longdiv'),mathml=[elem])
-            elem = infer_mrow(elem,list(map(cls.parse_from_mathml, elem)))
-            if elem is not None:
-                root.within = elem
-            return root
+        N! - Number
+        V! - Variable
+        F! - Fraction
+        T! - Text
+        M! - Group, with delimeters and shape (e.g., "M!()3x2")
+        R! - Root
+        W! - White space
+        ?  - Wildcard
+        E! - Error
+        else - Operator
 
-        elif elem.tag == MathML.msub:
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,2): # should never happen!
-                return None
-            # FWT handle operators such as \sum_{i+1}^n so that they parse as "under" and "over"
-            if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
-                if children[0].next or children[0].below:  # might have a sub on a sub: {x_y}_z, but not necessarily associative
-                    root = cls.make_matrix([children[0]],elem)
-                else:
-                    root = children[0]                
-                root.below = children[1]
-            else: # FWT future: \delta is an operator, perhaps restrict to "largeop=true" only? but not consistently present
-                if children[0].next or children[0].under:  # might have an underbar on the operator
-                    root = cls.make_matrix([children[0]],elem)
-                else:
-                    root = children[0]                
-                root.under = children[1]
-            return root
-        elif elem.tag == MathML.munder: # FWT - split sub from under
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,2):
-                return None
-            if children[0].next or children[0].under:  # munder and mover can apply to a whole row rather than a simple symbol
-                root = cls.make_matrix([children[0]],elem)
-            else:
-                root = children[0]                
-            root.under = children[1]
-            return root
-        elif elem.tag == MathML.msup:
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,2):
-                return None
-            # FWT handle operators such as \sum_{i+1}^n so that they parse as "under" and "over"
-            if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
-                if children[0].next or children[0].above:  # might have a sup on a sup: {x^y}^z, but not necessarily associative
-                    root = cls.make_matrix([children[0]],elem)
-                else:
-                    root = children[0]                
-                root.above = children[1]
-            else:
-                if children[0].next or children[0].over:  # might have an accent on the operator
-                    root = cls.make_matrix([children[0]],elem)
-                else:
-                    root = children[0]                
-                root.over = children[1]
-            return root
-        elif elem.tag == MathML.mover: # FWT - split sup from over
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,2):
-                return None
-            if children[0].next or children[0].over:  # munder and mover can apply to a whole row rather than a simple symbol
-                root = cls.make_matrix([children[0]],elem)
-            else:
-                root = children[0]                
-            root.over = children[1]
-            return root
-        elif elem.tag == MathML.msubsup:
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,3):
-                return None
-            # FWT handle operators such as \sum_{i+1}^n so that they parse as "under" and "over"
-            if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
-                if children[0].next or children[0].below or children[0].above:  # cascaded use can happen
-                    root = cls.make_matrix([children[0]],elem)
-                else:
-                    root = children[0]                
-                root.below = children[1]
-                root.above = children[2]
-            else:
-                if children[0].next or children[0].under or children[0].over:  # cascaded use can happen
-                    root = cls.make_matrix([children[0]],elem)
-                else:
-                    root = children[0]                
-                root.under = children[1]
-                root.over = children[2]
-            return root
-        elif elem.tag == MathML.munderover: # split from subsup
-            children = list(map(cls.parse_from_mathml, elem))
-            if not ensure(children,3):
-                return None
-            if children[0].next or children[0].under or children[0].over:  # munder and mover can apply to a whole row rather than a simple symbol
-                root = cls.make_matrix([children[0]],elem)
-            else:
-                root = children[0]                
-            root.under = children[1]
-            root.over = children[2]
-            return root
-        elif elem.tag == MathML.mprescripts:
-            return "PreScript"
-        elif elem.tag == MathML.mmultiscripts: #FWT: Future: handle cascading presecripts (like sub and sup above)
-            # base {sub sup}* [prescript {pre-sub pre-sup}*]
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) == 0:
-                return None
-            if len(children) == 1 and type(children[0]) is list: # mrow or mpadded within mmultiscripts
-                children = children[0]
-            if ignore_tag(children[0]):
-                children[0] = cls('W!') # base must be represented
-            try:
-                prescript = children.index("PreScript")
-            except ValueError: # no PreScript included
-                prescript = len(children)
-            if (prescript % 2 == 0) or (prescript < len(children) and len(children) % 2 == 1): # should never happen!
-                return None
-            if prescript > 1: # sub sup pairs are present
-                sub = children[1] if prescript > 3 or (children[1] and children[1].tag != "W!") else None
-                children[0].below = sub
-                sup = children[2] if prescript > 3 or (children[2] and children[2].tag != "W!") else None
-                children[0].above = sup
-                for i in range(3,prescript,2):
-                    sub.next = children[i] 
-                    sub = sub.next
-                    sup.next = children[i+1] 
-                    sup = sup.next
-            if prescript < len(children)-2:
-                sub = children[prescript+1] if prescript < len(children)-4 or (children[prescript+1] and children[prescript+1].tag != "W!") else None
-                children[0].pre_below = sub
-                sup = children[prescript+2] if prescript < len(children)-4 or (children[prescript+2] and children[prescript+2].tag != "W!") else None
-                children[0].pre_above = sup
-                for i in range(prescript+3,len(children),2):
-                    sub.next = children[i] 
-                    sub = sub.next
-                    sup.next = children[i+1]
-                    sup = sup.next
-            return children[0]
+        edges: a, b, c, d, w, e, n
+        """
 
-        elif (elem.tag == MathML.mtable)\
-          or (elem.tag == MathML.mstack) or (elem.tag == MathML.mlongdiv): # mlongdiv: separate divisor and result?
-            children = list(map(cls.parse_from_mathml, elem))
-            return cls.make_matrix(children,elem)
-        elif (elem.tag == MathML.mtr) or (elem.tag == MathML.mlabeledtr):
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) > 0:
-                root = children[0] if children[0] else cls('W!')
-                for i in range(1,len(children)):
-                    children[i-1].element = children[i]  # link by e edges
-                return root
-            else:
-                return cls('W!')
-        elif (elem.tag == MathML.mtd) or (elem.tag == MathML.mscarry):
-            children = list(map(cls.parse_from_mathml, elem))
-            if len(children) > 0 and children[-1] is not None and children[-1].tag == "&comma;":
-                children.pop()   # remove commas between matrix elements (no mrow)
-            root = children[0] if len(children) > 0 and children[0] is not None else cls('W!')
-            elem = root
-            for i in range(1,len(children)):
-                while elem.next:
-                    elem = elem.next
-                elem.next = children[i]
-            while elem.next:
-                if elem.next.tag == "&comma;" and not elem.next.next:
-                    elem.next = None   # remove commas between matrix elements (mrow)
-                else:
-                    elem = elem.next
-            return root
-        elif elem.tag == MathML.malignmark or elem.tag == MathML.maligngroup:
-            return None
-        elif elem.tag == MathML.msline:
-            return cls('=') # summation line in an mstack
+        """
+        ---------------------------------------------------
+            Content MathML tags
+        ---------------------------------------------------
 
-        elif elem.tag ==MathML.mqvar or elem.tag == MathML.mqvar2:
+        N! - Number
+        C! - Constant
+        V! - Variable
+        A! - Apply function (so as not to be confused with F! for fractions)
+        T! - Text
+        M! - Group Element (M!V-)/Matrix(M!M-)/Set(M!S-)/List(M!L-)/Delimited(M!D-)/MatrixRow(M!R!)/ Case (M!C!)
+        O! - Ordered operator (not commutative)
+        U! - Unordered operator (commutative)
+        E! - Error!
+        -! - Unknown type
+
+        edges: f, e, l, a, b, w, v
+        """
+        if elem.tag ==MathML.mqvar or elem.tag == MathML.mqvar2:
             # added the case where name is given as text within tag instead of attribute (KMD)
             if 'name' in elem.attrib:
                 var_name = elem.attrib['name']
             else:
                 var_name = clean(elem.text)
-            return cls('?'+var_name,mathml=[elem])
-        else:
-            raise UnknownTagException(elem.tag)
+            return cls('?'+var_name)
+        elif short_tag[0] == 'm':  # peel off most of the presentation tags and a few content tags
+ 
 
-    def build_str(self, builder):  # added for building string representation (FWT)
-        """
-        Build string representation of symbol
-        """
+            if elem.tag == MathML.mn:
+                content = get_value(elem)
+                return cls('N!' + content if content != '' else 'W!')
+            elif elem.tag == MathML.mo:  # future: improve representation (and equivalences) by recognizing and preserving fence="true" and separator="true"
+                return cls(get_value(elem))
+            elif elem.tag == MathML.mi:
+                content = get_value(elem)
+                return cls('V!' + content if content != '' else 'W!')
+            elif (elem.tag == MathML.mtext) or (elem.tag == MathML.ms):
+                content = clean(elem.text)
+                return cls('T!' + content if content != '' else 'W!')  # to prevent accidental mis-typing
+            elif elem.tag == MathML.mspace:
+                return cls('W!')
 
-        builder.append('[')
-        builder.append(self.tag)
-        if self.next:
-            self.next.build_str(builder)
-        for child, label in [(self.above, 'a'), (self.below, 'b'), (self.over, 'o'), (self.under, 'u'), 
-                             (self.pre_above, 'c'), (self.pre_below, 'd'), (self.within, 'w'), (self.element, 'e')]:
-            if child:
-                builder.append(','+label)
-                child.build_str(builder)
-        builder.append(']')
-
-    def tostring(self):  # added to print out tree (FWT)
-        str = []
-        self.build_str(str)
-        
-        return ''.join(str)
-
-    def get_dot_strings(self, prefix, rank_strings, node_names, node_strings, link_strings,
-                        highlight=None, unified=None, wildcard=None, generic=False):
-
-        # RZ: adding HTML parser (from Python libs) to convert HTML escape sequences to 
-        # unicode symbols.
-        htmlParser = HTMLParser()
-
-        current_id = len(node_names)
-
-        is_cluster = (self.within is not None)
-
-        color_unification = "#EA7300"
-        color_wildcards = "#FF0000"
-
-        if len(prefix) == 0:
-            loc = '-'
-        elif len(prefix) > 5:
-            loc = self.rlencode(prefix)
-        else:
-            loc = prefix
-
-        penwidth = 1
-        style = None
-        peripheries = 1
-
-        use_filled_style = False
-
-        if wildcard is not None and loc in wildcard:
-            # Wildcard matches nodes
-            if is_cluster:
-                color = color_wildcards
-                style = "bold"
-                peripheries = 2
-                fontcolor = "#000000"
-            else:
-                if use_filled_style:
-                    # Filled style
-                    fillcolor = color_wildcards
-                    style = "filled"
-                    fontcolor = "#ffffff"
-                    peripheries = 2
+            elif elem.tag in [MathML.math, MathML.mrow, MathML.mstyle, MathML.mpadded, MathML.msrow, MathML.mscarries, MathML.maction]:
+                return infer_mrow(elem,children)    # N.B. Could be W!
+            elif elem.tag == MathML.mfrac:
+                if not ensure(children,2): # should never happen
+                    return cls('E!'+short_tag,children=children)
                 else:
-                    color = color_wildcards
-                    style = "bold"
-                    fontcolor = "#000000"
-                    peripheries = 2
-
-            if generic:
-                node_label = htmlParser.unescape( self.tag[0:2] )
-            else:
-                node_label = htmlParser.unescape( self.tag )
-
-        elif unified is not None and loc in unified:
-            # Unified nodes
-            if is_cluster:
-                color = color_unification
-                style = "bold"
-                peripheries = 2
-                fontcolor = "#000000"
-            else:
-                if use_filled_style:
-                    # Filled style
-                    fillcolor = color_unification
-                    style = "filled"
-                    fontcolor = "#ffffff"
-                    peripheries = 2
+                    return cls('F!',over=children[0],under=children[1])
+            elif elem.tag == MathML.msqrt:
+                root = cls('R!')
+                root.set_within(infer_mrow(elem,children))
+                return root
+            elif elem.tag == MathML.mroot:   
+                if not ensure(children,2): # should never happen
+                    return cls('E!'+short_tag,children=children)
                 else:
-                    color = color_unification
-                    style = "bold"
-                    fontcolor = "#000000"
-                    peripheries = 2
+                    return cls('R!',pre_above=children[1],within=children[0])
+            elif elem.tag == MathML.merror:
+                root = cls('E!')
+                root.set_within(infer_mrow(elem,children))
+                return root
+            elif elem.tag == MathML.mphantom:
+                return cls("W!")
+            elif elem.tag == MathML.mfenced:  # treat like mrow (FWT)
+                children_map = filter(lambda x: not ignore_tag(x), children)
+                children = list(children_map)
+                separators = elem.attrib.get('separators', ',').split()
+                opening = elem.attrib.get('open', '(').replace("[","&lsqb;")
+                row = [cls(opening)]
+                if children:
+                    row.append(children[0])
+                for i, child in enumerate(children[1:]):
+                    row.append(cls(separators[min(i, len(separators) - 1)]))
+                    row.append(child)
+                closing = elem.attrib.get('close', ')').replace("]","&rsqb;")
+                row.append(cls(closing))
+                return cls.list2matrix(row, separators, elem)
+            elif elem.tag == MathML.menclose:
+                root = cls(elem.attrib.get('notation', 'longdiv'))
+                root.set_within(infer_mrow(elem,children))
+                return root
 
-            if generic:
-                node_label = htmlParser.unescape( self.tag[0:2] )
-            else:
-                node_label = htmlParser.unescape( self.tag )
-
-        # Exact matches
-        elif highlight is not None and loc in highlight:
-            if is_cluster:
-                color = "#004400"
-                style = "bold"
-                fontcolor = "#000000"
-            else:
-                if use_filled_style:
-                    # filled style
-                    style = "bold,filled"
-                    fillcolor = "#008800"
-                    fontcolor = "#ffffff"
-                else:
-                    # thick border style
-                    style = "bold"
-                    fontcolor = "#000000"
-                    color = "#008800"
-
-
-            if self.tag[1:2] == "!":
-                node_label = htmlParser.unescape( self.tag[2:] )
-            else:
-                node_label = htmlParser.unescape( self.tag )
-        
-        # Unmatched, or no unification/highlighting visualization requested.
-        else:
-            fontcolor = "#000000"
-            if (highlight is not None) and (unified is not None):
-                style = "dashed"
-            else:
-                if is_cluster:
-                    style = "bold"
-                else:
-                    if use_filled_style:
-                        style = "filled"
+            elif elem.tag == MathML.msub:
+                if not ensure(children,2): # should never happen!
+                    return cls('E!'+short_tag,children=children)
+                # FWT handle operators such as \sum_{i+1}^n so that they are treated as "under" and "over"
+                if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
+                    if children[0].next() or children[0].below():  # might have a sub on a sub: {x_y}_z, but not necessarily associative
+                        root = cls.make_matrix([children[0]],elem)
                     else:
-                        style = "bold"
-
-            if is_cluster:
-                color = "#000000"
-            else:
-                if use_filled_style:
-                    fillcolor = "#ffffff"
+                        root = children[0]                
+                    root.set_below(children[1])
+                else: # FWT future: \delta is an operator, perhaps restrict to "largeop=true" only? but not consistently present
+                    if children[0].next() or children[0].under():  # might have an underbar on the operator
+                        root = cls.make_matrix([children[0]],elem)
+                    else:
+                        root = children[0]                
+                    root.set_under( children[1])
+                return root
+            elif elem.tag == MathML.munder: # FWT - split sub from under
+                if not ensure(children,2):
+                    return cls('E!'+short_tag,children=children)
+                if children[0].next() or children[0].under():  # munder and mover can apply to a whole row rather than a simple symbol
+                    root = cls.make_matrix([children[0]],elem)
                 else:
-                    color = "#000000"
-
-
-            if (highlight is not None) and generic:
-                node_label = ""
-            # RZ: small modification to remove types in 'query' .dot output.
-            elif self.tag[1:2] == "!":
-                node_label = htmlParser.unescape( self.tag[2:] )
-            else:
-                node_label = htmlParser.unescape( self.tag )
-
-        # add all types of children (except within which needs special handling)
-        children = []
-        if self.above is not None:
-            children.append(("a", self.above))
-        if self.over is not None:
-            children.append(("o", self.over))
-        if self.pre_above is not None:
-            children.append(("c", self.pre_above))
-        if self.next is not None:
-            children.append(("n", self.next))
-        if self.below is not None:
-            children.append(("b", self.below))
-        if self.under is not None:
-            children.append(("u", self.under))
-        if self.pre_below is not None:
-            children.append(("d", self.pre_below))
-        if self.element is not None:
-            children.append(("e", self.element))
-
-        if self.within is not None:
-            # special handling with clusters
-            node_names.append("cluster" + str(current_id))
-
-            # create a subgraph starting with the within node as root
-            cluster_str = "subgraph cluster" + str(current_id) + " {\n"
-            cluster_str += " style= \"" + style + "\";\n"
-            cluster_str += " color= \"" + color + "\";\n"
-            cluster_str += " fontcolor= \"" + fontcolor + "\";\n"
-            cluster_str += " label=\"" + node_label + "\";\n"
-
-            # generate sub-graph from the children within ...
-            child_n_strings = []
-            child_l_strings = []
-            within_info = self.within.get_dot_strings(prefix + "w", rank_strings, node_names, child_n_strings, child_l_strings,
-                                                     highlight, unified, wildcard, generic)
-            within_id, within_cluster, within_head_id, within_tail = within_info
-            within_tail_id, within_tail_depth = within_tail
-            head_id = within_head_id
-
-            child_content = " ".join(child_n_strings) + " ".join(child_l_strings)
-            cluster_str += child_content
-            cluster_str += "}\n"
-
-            # add cluster as a node
-            node_strings.append(cluster_str)
-
-            # source for links to children
-            source_name = "n_" + str(within_tail_id)
-
-        else:
-            # other nodes that are not handled as clusters...
-            head_id = current_id
-            node_name = "n_" + str(current_id)
-            node_names.append(node_name)
-
-            # create node string
-            if use_filled_style:
-                # fill style nodes....
-                style_str = "style=\"" + style + "\" fillcolor=\"" + fillcolor + "\" fontcolor=\"" + fontcolor + "\""
-            else:
-                style_str = "style=\"" + style + "\" color=\"" + color + "\" fontcolor=\"" + fontcolor + "\""
-
-            if peripheries > 1:
-                style_str += " peripheries=\"2\""
-            current_str = node_name + "[label=\"" + node_label + "\" " + style_str + "];\n"
-
-            # add node
-            node_strings.append(current_str)
-
-            # source for links to children
-            source_name = node_name
-
-        # now, add node children
-        tail_id = None
-        tail_depth = 0
-        
-        for relation, child in children:
-            # call recursively ...
-            child_info = child.get_dot_strings(prefix + relation, rank_strings, node_names, node_strings, link_strings,
-                                               highlight, unified, wildcard, generic)
-            child_id, child_cluster, child_head_id, child_tail = child_info
-            child_tail_id, child_tail_depth = child_tail
-
-            # check if new deepest tail has been found
-            if tail_id is None or child_tail_depth > tail_depth:
-                # keep the deepest tail only
-                tail_id = child_tail_id
-                tail_depth = child_tail_depth
-
-            # connect to child (or grand child if child is a cluster)
-            child_name = "n_" + str(child_head_id)
-            
-
-            modificationString = ""
-            relationLabel = relation
-            if relation == "n":
-                relationLabel = ""
-                modificationString = " weight=\"5\""
-            elif relation == "e":
-                relationLabel = ""
-                modificationString = " weight=\"3\", arrowhead=\"odot\""
-            elif relation == "a":
-                relationLabel = '\u2191'
-            elif relation == "b":
-                relationLabel = '\u2193'
-            elif relation == "c":
-                relationLabel = '\u2196'
-            elif relation == "d":
-                relationLabel = '\u2199'
-
-            # check source type of link
-            if is_cluster:
-                # source is cluster ...
-                if child_cluster:
-                    child_link = source_name + " -> " + child_name + " [label=\"" + relationLabel + "\", lhead=\"cluster" + \
-                                 str(child_id) + "\", ltail=\"cluster" + str(current_id) + "\"" + modificationString + " ];\n"
+                    root = children[0]                
+                root.under = children[1]
+                return root
+            elif elem.tag == MathML.msup:
+                if not ensure(children,2):
+                    return cls('E!'+short_tag,children=children)
+                # FWT handle operators such as \sum_{i+1}^n so that they are treated as "under" and "over"
+                if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
+                    if children[0].next() or children[0].above():  # might have a sup on a sup: {x^y}^z, but not necessarily associative
+                        root = cls.make_matrix([children[0]],elem)
+                    else:
+                        root = children[0]                
+                    root.above = children[1]
                 else:
-                    child_link = source_name + " -> " + child_name + " [label=\"" + relationLabel + \
-                                 "\", ltail=\"cluster" + str(current_id) + "\"" + modificationString + " ];\n"
-            else:
-                # source is node ...
-                if child_cluster:
-                    child_link = node_name + " -> " + child_name + " [label=\"" + relationLabel + "\", lhead=\"cluster" + \
-                                 str(child_id) + "\"" + modificationString + " ];\n"
+                    if children[0].next() or children[0].over():  # might have an accent on the operator
+                        root = cls.make_matrix([children[0]],elem)
+                    else:
+                        root = children[0]                
+                    root.over = children[1]
+                return root
+            elif elem.tag == MathML.mover: # FWT - split sup from over
+                if not ensure(children,2):
+                    return cls('E!'+short_tag,children=children)
+                if children[0].next() or children[0].over():  # munder and mover can apply to a whole row rather than a simple symbol
+                    root = cls.make_matrix([children[0]],elem)
                 else:
-                    child_link = node_name + " -> " + child_name + " [label=\"" + relationLabel + "\"" + modificationString + " ];\n"
+                    root = children[0]                
+                root.over = children[1]
+                return root
+            elif elem.tag == MathML.msubsup:
+                if not ensure(children,3):
+                    return cls('E!'+short_tag,children=children)
+                # FWT handle operators such as \sum_{i+1}^n so that they are treated as "under" and "over"
+                if children[0].tag[0] == '?' or (len(children[0].tag) > 1 and children[0].tag[1] == '!'): # root is not an operator
+                    if children[0].next() or children[0].below() or children[0].above():  # cascaded use can happen
+                        root = cls.make_matrix([children[0]],elem)
+                    else:
+                        root = children[0]                
+                    root.below = children[1]
+                    root.above = children[2]
+                else:
+                    if children[0].next() or children[0].under() or children[0].over():  # cascaded use can happen
+                        root = cls.make_matrix([children[0]],elem)
+                    else:
+                        root = children[0]                
+                    root.under = children[1]
+                    root.over = children[2]
+                return root
+            elif elem.tag == MathML.munderover: # split from subsup
+                if not ensure(children,3):
+                    return cls('E!'+short_tag,children=children)
+                if children[0].next() or children[0].under() or children[0].over():  # munder and mover can apply to a whole row rather than a simple symbol
+                    root = cls.make_matrix([children[0]],elem)
+                else:
+                    root = children[0]                
+                root.under = children[1]
+                root.over = children[2]
+                return root
+            elif elem.tag == MathML.mprescripts:
+                return "PreScript"
+            elif elem.tag == MathML.mmultiscripts: #FWT: Future: handle cascading presecripts (like sub and sup above)
+                # base {sub sup}* [prescript {pre-sub pre-sup}*]
+                if len(children) == 0:
+                    return cls('E!'+short_tag)
+                if len(children) == 1 and type(children[0]) is list: # mrow or mpadded within mmultiscripts
+                    children = children[0]
+                if ignore_tag(children[0]):
+                    children[0] = cls('W!') # base must be represented
+                try:
+                    prescript = children.index("PreScript")
+                except ValueError: # no PreScript included
+                    prescript = len(children)
+                if (prescript % 2 == 0) or (prescript < len(children) and len(children) % 2 == 1): # should never happen!
+                    return cls('E!'+short_tag,children=children)
+                if prescript > 1: # sub sup pairs are present
+                    sub = children[1] if prescript > 3 or (children[1] and children[1].tag != "W!") else None
+                    children[0].set_below(sub)
+                    sup = children[2] if prescript > 3 or (children[2] and children[2].tag != "W!") else None
+                    children[0].set_above(sup)
+                    for i in range(3,prescript,2):
+                        sub.next = children[i] 
+                        sub = sub.next()
+                        sup.set_next(children[i+1]) 
+                        sup = sup.next()
+                if prescript < len(children)-2:
+                    sub = children[prescript+1] if prescript < len(children)-4 or (children[prescript+1] and children[prescript+1].tag != "W!") else None
+                    children[0].set_pre_below(sub)
+                    sup = children[prescript+2] if prescript < len(children)-4 or (children[prescript+2] and children[prescript+2].tag != "W!") else None
+                    children[0].set_pre_above(sup)
+                    for i in range(prescript+3,len(children),2):
+                        sub.set_next(children[i])
+                        sub = sub.next()
+                        sup.set_next(children[i+1])
+                        sup = sup.next()
+                return children[0]
 
-            link_strings.append(child_link)
+            elif (elem.tag == MathML.mtable)\
+              or (elem.tag == MathML.mstack) or (elem.tag == MathML.mlongdiv): # mlongdiv: separate divisor and result?
+                return cls.make_matrix(children,elem)
+            elif (elem.tag == MathML.mtr) or (elem.tag == MathML.mlabeledtr):
+                if len(children) > 0:
+                    root = children[0] if children[0] else cls('W!')
+                    for i in range(1,len(children)):
+                        children[i-1].element = children[i]  # link by e edges
+                    return root
+                else:
+                    return cls('W!')
+            elif (elem.tag == MathML.mtd) or (elem.tag == MathML.mscarry):
+                if len(children) > 0 and children[-1] is not None and children[-1].tag == "&comma;":
+                    children.pop()   # remove commas between matrix elements (no mrow)
+                root = children[0] if len(children) > 0 and children[0] is not None else cls('W!')
+                elem = root
+                for i in range(1,len(children)):
+                    while elem.next():
+                        elem = elem.next()
+                    elem.set_next(children[i])
+                while elem.next():
+                    if elem.next.tag == "&comma;" and not elem.next().next():
+                        elem.del_next()   # remove commas between matrix elements (mrow)
+                    else:
+                        elem = elem.next()
+                return root
+            elif elem.tag == MathML.malignmark or elem.tag == MathML.maligngroup:
+                return cls('E!'+short_tag,children=children)
+            elif elem.tag == MathML.msline:
+                return cls('=') # summation line in an mstack
 
-            # RZ: Add 'rank=same' information for adjacent nodes.
-            #leftNode = None
-            #rightNode = child_name
-            #if relation == 'e':
-            #    if is_cluster:
-             #       leftNode = source_name
-             #   else:
-              #      leftNode = node_name
-              #  rank_strings.append("{ rank=same; " + leftNode + "; " + rightNode + "; }\n")
+            # Content MML tags that start with 'm'
 
-        # set the tail ....
-        if tail_id is None:
-            # no children ...
-            if is_cluster:
-                # use inner tail as tail ...
-                tail = (within_tail_id, within_tail_depth)
+            # ... matrices ...
+            elif elem.tag == MathML.matrix:
+                # a matrix, but this code does not handle constructors
+            # check the number of rows ...
+                n_cols = 0
+                for row in children:
+                    n_cols = max(n_cols, len(row.children))
+                mat_root = cls("M!M-" + str(len(children)) + "x" + str(n_cols),children=[])
+
+                # check for missing values to make matrix square and keep all cells in row-major order as children
+                for row in children:
+                    while len(row.children) < n_cols:
+                        row.children.append(cls("W!"))
+                    mat_root.children.extend(row.children)	# no need to keep the matrix structure
+                for child in mat_root.children:
+                    child.set_label('w')	# mark all children as within the matrix
+                return mat_root
+
+            # ... matrix rows ...
+            elif elem.tag == MathML.matrixrow:
+                # a matrix row,
+                for child in children:
+                    child.set_label("w")
+                return cls("M!R!", children=children)
+
+            elif elem.tag in [MathML.min, MathML.max]:
+                # print("op " + elem.tag,flush=True)
+                return cls("U!" + short_tag, in_label="f")
+            elif elem.tag in [MathML.minus, MathML.moment]:
+                return cls("O!" + short_tag, in_label="f")
+            elif elem.tag == MathML.momentabout:
+                if not ensure(children,1): # should never happen
+                    # print("invalid momentabout")
+                    return cls('E!'+short_tag,children=children)
+                else:
+                    children[0].set_label('b')
+                    return children[0]
+
             else:
-                # use itself as tail
-                # (remove "w" boxes of parents as part of the current depth)
-                no_box_prefix = prefix.replace("w", "")
-                tail = (current_id, len(no_box_prefix))
-        else:
-            tail = (tail_id, tail_depth)
+                # print("unknown "+short_tag)
+                return cls('E!'+short_tag,children=children)
+
+        ##############
+        # Content MML:
+        ##############
+        else:  # tags that do not start with 'm'
 
 
-        #print(str((self.tag, current_id, is_cluster, head_id, tail)))
+            if elem.tag == MathML.none:
+                return cls("W!")
+            elif elem.tag == MathML.semantics:
+                return infer_mrow(elem,children)    # N.B. Could be W!
 
-        return current_id, is_cluster, head_id, tail
+            # operator tree leaves ...
+            elif elem.tag == MathML.ci:
+                content = get_value(elem)
+                # print("ci: "+content,flush=True)
+                return(cls(('V!' + content) if content != '' else 'W!'))
 
-    def mark_matches(self, location, matches, unified, wildcard_matches):
-        if location == "":
-            short_loc = "-"
-        elif len(location) <= 5:
-            short_loc = location
-        else:
-            short_loc = MathSymbol.rlencode(location)
+            elif elem.tag == MathML.cn:
+                content = get_value(elem)
+                return(cls(('N!' + content) if content != '' else 'W!'))
+
+            elif elem.tag == MathML.cerror:
+                # print("CERROR tag")
+                retval = cls('E!'+short_tag, children=children)
+
+                # check for common error patterns to simplify tree...
+
+                # contiguous "unknown" csymbol....
+                pos = 0
+                while pos + 1 < len(retval.children):
+                    if retval.children[pos].tag[0:2] in ["-!", "T!"] and retval.children[pos + 1].tag[0:2] == "-!":
+                        # combine ... change to text ...
+                        retval.children[pos].tag = "T!" + retval.children[pos].tag[2:] + retval.children[pos + 1].tag[2:]
+                        # remove next ...
+                        del retval.children[pos + 1]
+                    else:
+                        pos += 1
+                return retval
+
+            # special mathml operations
+            elif elem.tag == MathML.apply:
+                # operator ...there should be at least one operand?
+                # root (operator)
+                op_root = children[0]
+                # print("apply to "+op_root.tag, flush=True)
+                if op_root.tag[0:2] == "V!":
+                    # identifier used as an operator, assume a function!
+                    op_root.tag = "A!" + op_root.tag[2:]
+                    op_root.set_label("?")
+                    # print("it's a function: " + op_root.tag,flush=True)
+                elif op_root.tag == "O!SUB":
+                    if not ensure(children,3): # should never happen
+                        # print("invalid O!SUB")
+                        return cls('E!'+short_tag,children=children)
+                    else:
+                        op_root = children[1]
+                        op_root.set_below(children[2])
+                    return op_root
+                elif op_root.tag == "O!SUP":
+                    if not ensure(children,3): # should never happen
+                        # print("invalid O!SUP")
+                        return cls('E!'+short_tag,children=children)
+                    else:
+                        op_root = children[1]
+                        op_root.set_above(children[2])
+                    return op_root
+                
+                # check for special operators with special name operands
+                if (op_root.tag == "A!int" or op_root.tag.endswith("integral")) and len(children) > 1:
+                    main_operand = children[-1]
+                    lowlimit = op_root.below()	# ARQMath data uses subscript and superscript for limits, else None
+                    uplimit = op_root.above()
+                    int_var = None 
+         
+                    for child in children[2:-2]:	# check for other encodings of integral limits and variable
+                        if child.tag.startswith("O!interval"):
+                            lowlimit = child.children[0]
+                            _ = child.children[1]
+                        elif child.tag == "A!bvar":
+                            int_var = child
+                        elif child.tag == "A!lowlimit":
+                            lowlimit = child.children[0]
+                        elif child.tag == "A!uplimit":
+                            uplimit = child.children[0]
+                        else:
+                            # print("unknown A!INT")
+                            return cls("E!",children=children) 
+
+                    main_operand.set_label("w")
+                    if main_operand.tag == "U!times":
+                        for child in main_operand.children[:]:		# slice makes a copy so that child can be removed
+                            if child.tag == "A!differential-d":
+                                child.children[0].set_label("v")
+                                if int_var:					# for double and triple integrals
+                                    if int_var.tag == "O!bvar":
+                                        int_var.children.append(child.children[0])
+                                    else:
+                                        int_var = cls("O!bvar",children=[int_var,child.children[0]],in_label="v")
+                                else:
+                                   int_var = child.children[0]
+                            main_operand.children.remove(child)
+                            # else: look for times(d,var) elsewhere in integrand expression
+                    if lowlimit:
+                        lowlimit.set_label("b")					# can double-integrals have multiple subscripts and superscripts?
+                    if uplimit:
+                        uplimit.set_label("a")
+                    op_root.children = [main_operand, int_var, lowlimit, uplimit]
+                    return op_root
+
+                elif op_root.tag == "A!sum" and len(children) > 1:
+                    main_operand = children[-1]
+                    if op_root.below() == "O!eq":	# e.g. $sum_{k=1}^N ...$
+                        sum_var = op_root.below().child[0]
+                        sum_var.set_label("v")
+                        lowlimit = op_root.below().child[1]
+                    else:
+                        sum_var = None
+                        lowlimit = op_root.below()	
+                    uplimit = op_root.above()
+         
+                    main_operand.set_label("w")
+                    if lowlimit:
+                        lowlimit.set_label("b")
+                    if uplimit:
+                        uplimit.set_label("a")
+                    op_root.children = [main_operand, sum_var, lowlimit, uplimit]
+                    return op_root
+
+                elif (op_root.tag.startswith("A!limit") or op_root.tag.endswith("limit")) and len(children) > 1:
+                    main_operand = children[-1]
+                    if op_root.below() == "V!":	# e.g. $lim_{k->1} ...$
+                        lim_var = op_root.below().child[0]
+                        limit = op_root.below().child[1]
+                    else:
+                        lim_var = None
+                    limit = op_root.below()	
+         
+                    main_operand.set_label("w")
+                    if lim_var:
+                        lim_var.set_label("v")
+                    if limit:
+                        limit.set_label("b")
+                    op_root.children = [main_operand, lim_var, limit]
+                    return op_root
+
+                elif op_root.tag == "A!root":
+                    main_operand = children[-1]
+                    if children[1].tag == 'A!degree':
+                        degree = children[1].children[0]
+                    else:
+                        degree = cls("N!2")	# default to square root
+                    main_operand.set_label("w")
+                    degree.set_label("c")
+                    op_root.children = [main_operand, degree]
+                    return op_root
+
+                elif op_root.tag == "O!cases":
+                    if len(children) == 2 and children[1].tag[0:2] == "M!": # matrix erroneously marked as cases
+                        return children[1]
+                    # all the remaining operands (at least one?) are cases
+                    op_root.children = children[1:]
+                    if len(children) % 2 != 1:	# op_root is children[0], so total number should be odd
+                        # print("missing case in O!cases " + str(len(children)) + " children")
+                        op_root.children.append(cls("E!missing-case",in_label="w"))
+                    for child in op_root.children:
+                        child.set_label("w")		# mark all children as within the function
+                    return op_root
+
+                elif op_root.tag == "A!matrix":
+                    if not ensure(children,2): # should never happen
+                        # print("invalid A!matrix")
+                        return cls('E!'+short_tag,children=children)
+                    if children[1].tag[0:2] == "W!":
+                        return cls("M!",children=children[1:],in_label = 'w')
+                    return children[1]
+
+                elif op_root.tag[0:9] == "E!csymbol" and len(children) == 2 and children[1].tag[0:2] == "M!": # matrix erroneously marked
+                    children[1].in_label = op_root.in_label # preserve the label
+                    return children[1]
+
+                else:  # just a normal function or operator
+                    op_root.children = children[1:]
+                    # print("function completed",flush=True)
+                    for c in op_root.children:
+                        if c:
+                            c.in_label = op_root.in_label       # the operator has the label to use for its children
+                    return op_root
 
 
-        if short_loc in wildcard_matches:
-            color = "#FD2020"
-        elif short_loc in unified:
-            #color = "#FD6120"
-            color = "#FD9D20"
-        elif short_loc in matches:
-            color = "#1B7A1B"
-        else:
-            color ="#000000"
+#       elif elem.tag == MathML.share:
+#            # copy a portion of the tree used before ...
+#            if elem.attrib["href"] == ,f(O!minus:f(N!1:))"#.cmml": 	# instead should use ids in identified
+#                # special case common in equations, repeat right operand of last operation ...
+#                if parent.parent.tag == "U!and":
+#                    # identify root of subtree to copy ...
+#                    last_operand = parent.parent.children[-1].children[-1]
+#                    # copy ...
+#                    retval = Copy(last_operand)
+#                    retval.parent = parent
 
-        #print(location)
-        #print(self.mathml)
-        #print(self.tag)
-        for elem in self.mathml:
-            #if isinstance(elem, MathSymbol):
-            #    print(elem.tag)
+            # tags with special handling ...
+            # ... groups of elements ...
+            elif elem.tag == MathML.vector or elem.tag == MathML.list or elem.tag == MathML.set:
+                subtype = "--"
+                if elem.tag == MathML.vector:
+                    subtype = "V-"
+                elif elem.tag == MathML.list:
+                    subtype = "L-"
+                elif elem.tag == MathML.set:
+                    # a vector (or list) ...
+                    subtype = "S-"
+                for child in children:
+                    child.set_label("w")
+                return cls("M!" + subtype + str(len(list(elem))), children=children)
 
-            elem.attrib["mathcolor"] = color
+            # ... intervals ...
+            elif elem.tag == MathML.interval:        
+                if not ensure(children,2): # should never happen
+                    # print("invalid interval")
+                    return cls('E!'+short_tag,children=children)
+                inttype = "C-C"	# default, closed
+                if "closure" in elem.attrib:
+                    closure = elem.attrib["closure"].strip().lower()
+                    if closure == "open":
+                        inttype = "O-O"
+                    elif closure == "closed":
+                        inttype = "C-C"
+                    elif closure == "open-closed":
+                        inttype = "O-C"
+                    elif closure == "closed-open":
+                        inttype = "C-O"
+                    else:
+                        # print("invalid closure for interval")
+                        return cls('E!'+short_tag+closure,children=children)
+                children[0].set_label("b")
+                children[1].set_label("a")
+                return cls("O!interval(" + inttype + ")", children=children)
 
-        #call recursively...
-        if self.next is not None:
-            self.next.mark_matches(location + "n", matches, unified, wildcard_matches)
-        if self.above is not None:
-            self.above.mark_matches(location + "a", matches, unified, wildcard_matches)
-        if self.below is not None:
-            self.below.mark_matches(location + "b", matches, unified, wildcard_matches)
-        if self.over is not None:
-            self.over.mark_matches(location + "o", matches, unified, wildcard_matches)
-        if self.under is not None:
-            self.under.mark_matches(location + "u", matches, unified, wildcard_matches)
-        if self.pre_above is not None:
-            self.pre_above.mark_matches(location + "c", matches, unified, wildcard_matches)
-        if self.pre_below is not None:
-            self.pre_below.mark_matches(location + "d", matches, unified, wildcard_matches)
-        if self.within is not None:
-            self.within.mark_matches(location + "w", matches, unified, wildcard_matches)
-        if self.element is not None:
-            self.element.mark_matches(location + "e", matches, unified, wildcard_matches)
+            # functions with special tags (but all used with <apply>) ...
+            elif elem.tag in [MathML.sin, MathML.cos, MathML.tan, MathML.cot, MathML.sec, MathML.csc,
+                              MathML.sinh, MathML.cosh, MathML.tanh, MathML.coth, MathML.sech, MathML.csch,
+                              MathML.arccos, MathML.arccot, MathML.arccsc, MathML.arcsec, MathML.arcsin, MathML.arctan,
+                              MathML.arccosh, MathML.arccoth, MathML.arccsch, MathML.arcsech, MathML.arcsinh, MathML.arctanh]:
+                return cls("A!" + short_tag, in_label='t')
+            elif elem.tag in [MathML._abs, MathML.exp, MathML.log, MathML.ln, 
+                              MathML.ceiling, MathML.floor, MathML.arg, MathML.determinant,
+                              MathML.real, MathML.imaginary, MathML.factorial, MathML.root,
+                              MathML.int, MathML.sum, MathML.limit, MathML.partialdiff, MathML.compose]:
+                if short_tag == "determinant":
+                    short_tag = "det"
+                return cls("A!" + short_tag, in_label='f')
+            elif elem.tag in [MathML.forall, MathML.exists, MathML._not]:
+                return cls("A!" + short_tag, in_label='l')
+            elif elem.tag in [MathML.bvar, MathML.lowlimit, MathML.uplimit, MathML.degree]:
+                if not ensure(children,1): # should never happen
+                    # print("invalid " + short_tag)
+                    return cls('E!'+short_tag,children=children)
+                children[0].set_label("w")
+                return cls("A!" + short_tag,children=children)
+
+            # unordered operators ...
+            elif elem.tag in [MathML.approx, MathML.eq, MathML.neq, MathML.equivalent]:
+                return cls("U!" + short_tag, in_label="e")
+            elif elem.tag in [MathML.union, MathML.intersect]:
+                return cls("U!" + short_tag, in_label="s")
+            elif elem.tag in [MathML.plus, MathML.times, MathML.gcd]:
+                # print("op " + elem.tag,flush=True)
+                return cls("U!" + short_tag, in_label="f")
+            elif elem.tag in [MathML._and, MathML._or]:
+                return cls("U!" + short_tag, in_label="l")
+
+            # ordered operators ...
+            elif elem.tag in [MathML.lt, MathML.gt, MathML.leq, MathML.geq]:
+                return cls("O!" + short_tag,  in_label="e")
+            elif elem.tag == MathML.divide:
+                return cls("O!" + short_tag, in_label="f")
+            elif elem.tag in [MathML.setdiff]:
+                return cls("O!" + short_tag, in_label="s")
+            elif elem.tag in [MathML.subset, MathML.prsubset, MathML.notsubset, MathML.notprsubset,
+                              MathML._in, MathML.notin, MathML.implies]:
+                return cls("O!" + short_tag, in_label='l')
+
+            # special constants
+            elif elem.tag in [MathML.infinity, MathML.emptyset, MathML.imaginaryi]:
+                if short_tag == "empty_set":
+                    label = 's'
+                else:
+                    label = 'f'
+                return cls("C!" + short_tag, in_label = label)	# no children
+
+            # generic tag operators
+            elif elem.tag == MathML.csymbol:
+                # Operators in general
+                # -- for now, the following all set retval and returns from bottom of function
+                retval = None
+                content = get_value(elem).lower()
+
+                cd = elem.attrib["cd"] if "cd" in elem.attrib else ""
+
+                if cd == "latexml":
+
+                    if content in ["approximately-equals-or-equals", "approximately-equals-or-image-of",
+                                   "asymptotically-equals", "equals-or-preceeds", "equals-or-succeeds", "geometrically-equals",
+                                   "greater-than-and-not-approximately-equals", "greater-than-and-not-equals",
+                                   "greater-than-and-not-equivalent-to",
+                                   "greater-than-or-approximately-equals", "greater-than-or-equals-or-less-than",
+                                   "greater-than-or-equivalent-to", "greater-than-or-less-than",
+                                   "image-of-or-approximately-equals", 
+                                   "less-than-or-approximately-equals", "less-than-or-similar-to",
+                                   "much-greater-than", "much-less-than",
+                                   "not-approximately-equals", "not-equivalent-to", 
+                                   "not-greater-than", "not-greater-than-nor-equals", "not-greater-than-or-equals",
+                                   "not-less-than", "less-than-and-not-approximately-equals", "less-than-and-not-equals",
+                                   "less-than-and-not-equivalent-to", "not-less-than-nor-greater-than",
+                                   "not-less-than-nor-equals", "not-less-than-or-equals",
+                                   "less-than-or-equals-or-greater-than", "less-than-or-greater-than",
+                                   "not-much-greater-than", "not-much-less-than", "not-similar-to-or-equals",
+                                   "not-precedes", "not-precedes-nor-equals", "not-precedes-or-equals", 
+                                   "not-proportional-to", "not-similar-to", "not-square-image-of-or-equals",
+                                   "not-succeeds", "not-succeeds-nor-equals",
+                                   "not-very-much-less-than", "not-very-much-greater-than",
+                                   "precedes", "precedes-and-not-approximately-equals", "precedes-and-not-equals",
+                                   "precedes-and-not-equivalent-to", "precedes-or-approximately-equals",
+                                   "precedes-or-equals", "precedes-or-equivalent-to",
+                                   "proportional-to", "similar-to", "similar-to-or-equals",
+                                   "square-image-of", "square-image-of-or-equals", 
+                                   "square-original-of", "square-original-of-or-equals", "square-union",
+                                   "succeeds", "succeeds-and-not-approximately-equals", "succeeds-and-not-equals",
+                                   "succeeds-and-not-equivalent-to",
+                                   "succeeds-or-approximately-equals", "succeeds-or-equals", "succeeds-or-equivalent-to",
+                                   "not-asymptotically-equals", "not-greater-than-or-less-than", "not-less-than-or-greater-than",
+                                   "not-maps-to", "not-less-than-or-similar-to", "not-not-equals", "not-subgroup-of-or-equals",
+                                   "not-subset-of-and-not-equals", "not-succeeds-or-equals", "not-succeeds-or-equivalent-to",
+                                   "not-asymptotically-equals", "very-much-greater-than", "very-much-less-than"]:
+                        retval = cls("O!" + content, in_label='e')
+                    elif content in ["complement", "conditional-set",
+                                   "contains", "double-intersection", "double-subset-of", "double-superset-of",
+                                   "double-union", "kernel", "not-contains", "contains-as-subgroup-or-equals",
+                                   "not-contains-nor-equals", "not-subgroup-of", "not-subgroup-of-nor-equals",
+                                   "subgroup-of", "subgroup-of-or-equals", "contains-as-subgroup",
+                                   "not-subset-of", "not-subset-of-or-equals", "not-subset-of-nor-equals",
+                                   "not-superset-of", "not-superset-of-nor-equals", "not-superset-of-or-equals",
+                                   "proper-intersection", "square-intersection", "square-union",
+                                   "superset-of", "superset-of-or-equals", "superset-of-and-not-equals",
+                                   "join", "not-contains-as-subgroup-or-equals", "not-factorial", "not-empty-set",
+                                   "not-intersection", "not-proper-intersection", "symmetric-difference"]:
+                        retval = cls("O!" + content, in_label='s')
+                    elif content in ["because", "does-not-prove", "not-exists", "not-proves", "proves","therefore","conditional",
+                                   "models", "not-and", "not-divides", "not-forces", "not-models", "not-parallel-to",
+                                   "not-implies", "implied-by", "leads-to", "not-or", "not-not",
+                                   "not-bottom", "not-does-not-prove", "not-exclusive-or", "not-for-all", "not-iff",
+                                   "not-partial-differential", "not-perpendicular-to", "parallel-to", "perpendicular-to"]:
+                        retval = cls("O!" + content, in_label="l")
+                    elif content in ["contour-integral", "double-integral", "injective-limit", "limit-from", "limit-infimum",
+                                   "limit-supremum", "matrix", "projective-limit", "quadruple-integral", "triple-integral",
+                                   "not-minus", "not-infinity", "not-not-divides", "not-square-image-of", "not-times",
+                                   "not-factorial", "not-integral",
+                                   "degree", "differential-d", "infinity", "double-factorial", "multiple-integral"]:
+                        retval = cls("A!" + content, in_label='f')
+                    elif content in ["annotated", "approaches-limit", "assign", "between", "binomial", "bottom",
+                                   "bra", "cases", "continued-fraction", 
+                                   "coproduct", "currency-dollar", "difference-between", 
+                                   "dimension", "direct-product", "direct-sum", "divides", "evaluated-at",
+                                   "exclusive-or", "expectation", "forces", 
+                                   "iff", "infimum", "inner-product",
+                                   "ket", "left-normal-factor-semidirect-product", "left-semidirect-product",
+                                   "maps-to", "minus-or-plus", "norm", "percent", "plus-or-minus",
+                                   "product", "quantum-operator-product",
+                                   "right-normal-factor-semidirect-product", "right-semidirect-product",
+                                   "supremum", "tensor-product", "top", "weierstrass-p"]:
+                        retval = cls("O!" + content, in_label="f")
+
+                    elif content == "absent":
+                        retval = cls("W!")
+                    elif content.startswith("delimited-"):
+                        # delimited single element, treat as a 1x1 vector ...
+                        retval = cls("M!D-" + content[10:])
+                        retval.tag = retval.tag.replace("[", "&lsqb;").replace("]", "&rsqb;")
+                    elif content == "for-all":
+                        retval = cls("O!forall",in_label="l")
+                    elif content == "hyperbolic-cotangent":
+                        retval = cls("A!coth", in_label="t")
+                    elif content == "modulo":
+                        retval = cls("O!rem", in_label="f")
+                    elif content == "planck-constant-over-2-pi":
+                        # special constant
+                        retval = cls("C!hbar")
+                    elif content == "square-root":
+                        # by default, degree two (squared root) will be generated at the parent node
+                        retval = cls("O!root", in_label="f")
+
+                    if retval is None:
+                        # check if content can be treated as a number ... (it happens .... sometimes ... )
+                        try:
+                            value = float(content)
+                            # will reach this line only if it can be treated as a float value ...
+                            retval = cls("N!" + str(value))
+                        except:
+                            # print("retval is None?")
+                            retval = cls("E!"+short_tag+"_cd=latexml_"+content)
+                            
+
+                elif cd == "ambiguous":
+                    if content == "formulae-sequence":
+                        retval = cls("O!form-seq")
+                    elif content == "fragments":
+                        retval = cls("O!fragments")
+                    elif content == "missing-subexpression":
+                        retval = cls("W!")
+                    elif content == "subscript":	# e.g., used for definite integrals
+                        retval = cls("O!SUB")
+                    elif content == "superscript":
+                        retval = cls("O!SUP")
+                    else:
+                        # print("unknown ambiguous content")
+                        retval = cls("E!"+short_tag+"_cd=ambiguous_"+content)
+
+                elif cd == "mws":		# used in ARQMath for wildcards
+                    if 'name' in elem.attrib:
+                        var_name = elem.attrib['name']
+                    else:
+                        var_name = clean(elem.text)
+                    retval = cls("?"+var_name)
+
+                elif cd == "unknown":
+                    # Unknown type ...
+                    retval = cls("-!" + content)
+
+                else:
+                    # print ("unknown cd")
+                    retval = cls("E!"+short_tag+"_cd="+cd)
+                retval.children = children
+                return retval
+
+            else:
+                # print("unknown "+short_tag)
+                return cls('E!'+short_tag,children=children)
 
 
 class MathSymbolIterator(object):
     """
-    Iterator over a symbol tree
+    Depth-first iterator over a tree
     """
 
     def __init__(self, node, prefix, window, unbounded=False):
@@ -1179,13 +1515,9 @@ class MathSymbolIterator(object):
         bound = True
         if not self.window or len(self.prefix)+len(path) < self.window:
             bound = True
-            for child, label in [(elem.next, 'n'), (elem.above, 'a'), (elem.below, 'b'), (elem.over, 'o'), (elem.under, 'u'),
-                                 (elem.pre_above, 'c'), (elem.pre_below, 'd'), (elem.within, 'w'), (elem.element, 'e')]:
-                if child:
-                    self.stack.append((child, path+label))
+            for child in children:
+                self.stack.append((child, path+child.in_label))
         elif len(self.prefix)+len(path) >= self.window and self.unbounded:
-            for child, label in [(elem.next, 'n'), (elem.above, 'a'), (elem.below, 'b'), (elem.over, 'o'), (elem.under, 'u'),
-                                 (elem.pre_above, 'c'), (elem.pre_below, 'd'), (elem.within, 'w'), (elem.element, 'e')]:
-                if child:
-                    self.stack.append((child, path+label))
+            for child in children:
+                self.stack.append((child, path+child.in_label))
         return (elem, self.prefix+path)

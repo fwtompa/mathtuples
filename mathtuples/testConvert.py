@@ -34,8 +34,7 @@ import os
 WINDOWS = "nt"
 ROOTPATH = os.path.dirname(os.path.abspath(__file__))
 
-try:
-    from mathtuples.convert import convert_math_expression,\
+from .convert import convert_math_expression,\
                                 check_wildcard, make_wild,\
                                 determine_node,\
                                 expand_nodes_with_location,\
@@ -45,20 +44,7 @@ try:
                                 DUPLICATE_NODE, LONG_NODE, ABBREVIATED_NODE,\
                                 WILDCARD_MOCK, START_TAG, END_TAG,\
                                 INFINITE_DEPTH, MAX_EOL_HEIGHT, MAX_DUP
-    from mathtuples.mathsymbol import REP_TAG
-except ImportError:
-    from convert import convert_math_expression,\
-                                check_wildcard, make_wild,\
-                                determine_node,\
-                                expand_nodes_with_location,\
-                                expand_node_with_wildcards,\
-                                EDGE_PAIR_NODE, COMPOUND_NODE, \
-                                EOL_NODE, TERMINAL_NODE, SYMBOL_PAIR_NODE,\
-                                DUPLICATE_NODE, LONG_NODE, ABBREVIATED_NODE,\
-                                WILDCARD_MOCK, START_TAG, END_TAG,\
-                                INFINITE_DEPTH, MAX_EOL_HEIGHT, MAX_DUP
-    from mathsymbol import REP_TAG
-
+from .mathsymbol import REP_TAG
 
 def convert_test(mathml,
                synonyms=False,
