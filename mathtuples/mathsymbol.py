@@ -525,8 +525,8 @@ class MathSymbol:
                 #     elem references the start of the matrix element being processed
                 #     expr references a symbol in the expression being processed
                 if len(children) == 3:  # (fence,expr-list,fence) => look for separators
-                    while expr and expr.next:
-                        if separates(expr.next.tag):  # nested mrow already processed to link parts
+                    while expr and expr.next():
+                        if separates(expr.next().tag):  # nested mrow already processed to link parts
                             num_args += 1
 
                             # Original: All connected as "element"
@@ -756,6 +756,9 @@ class MathSymbol:
         if not elem.tag.startswith('{'): # handle missing namespace declaration (FWT) -- should be reported as warning!
             elem.tag = MathML.namespace+elem.tag
         children = list(map(cls.tree_from_mathml, elem))  # before continuing, perform the recursive descent to convert the children
+        # print("Children completed")
+        # for c in children:
+        #     print(c.toString())
 
         short_tag = elem.tag[len(MathML.namespace):]
 
