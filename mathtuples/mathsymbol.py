@@ -94,24 +94,13 @@ class MathSymbol:
     Node in a math tree, for both layout_symbol (SLT) and semantic_symbol (OpT)
     """
 
-    def __init__(self, tag, children=None, 
-                 next_elem=None, above=None, below=None, over=None, under=None, within=None,
-                 pre_above=None, pre_below=None, element=None, in_label='-'): # FWT
+    def __init__(self, tag, children=None, in_label='-'): # FWT
         self.tag = tag
         if children:
             self.children = children
         else:
             self.children = []
         self.in_label = in_label
-        if next_elem: next_elem.in_label= 'n'; self.children.append(next_elem)
-        if above: above.in_label= 'a'; self.children.append(above)
-        if below: below.in_label= 'b'; self.children.append(below)
-        if over: over.in_label= 'o'; self.children.append(over)
-        if under: under.in_label= 'u'; self.children.append(under)
-        if pre_above: pre_above.in_label= 'c'; self.children.append(pre_above)
-        if pre_below: pre_below.in_label= 'd'; self.children.append(pre_below)
-        if within: within.in_label= 'w'; self.children.append(within)
-        if element: element.in_label= 'e'; self.children.append(element)
         
     def get_size(self):
         return 1 + sum(map(get_size,self.children))
@@ -477,7 +466,7 @@ class MathSymbol:
     """
 
     @classmethod
-    def list2matrix(cls, children, separators, parent_element):
+    def list2matrix(cls, children, separators):
         """
         Treat a list of trees as if it were a matrix
          -- assumes children starts and ends with fence characters
@@ -503,8 +492,6 @@ class MathSymbol:
             if len(children) == 3:
                 fence = fence + children[2].tag
             children[1].tag = 'M!'+fence+children[1].tag[2:]  # insert fence chararacters into label
-            children[1].mathml.append(parent_element)
-
             return children[1]
         else:
             mnode = cls('M!')    # mark as if empty matrix
@@ -729,7 +716,7 @@ class MathSymbol:
                 # handle parenthesized sub-expressions (FWT)
                 if (len(children) > 1 and (children[0].tag in '({|∥' or children[0].tag == "&lsqb;")):
                 #    and (children[-1].tag in ')}|∥' or children[-1].tag == "&rsqb;")):  # bracketed expression: treat as matrix
-                    return cls.list2matrix(children, ',', elem)
+                    return cls.list2matrix(children, ',')
                 else: # just eliminate mrow and connect its children
                     elem = children[0]
                     for i in range(1,len(children)):
@@ -829,7 +816,9 @@ class MathSymbol:
                 if not ensure(children,2): # should never happen
                     return cls('E!'+short_tag,children=children)
                 else:
-                    return cls('F!',over=children[0],under=children[1])
+                    children[0].set_label("o")
+                    children[1].set_label("u")
+                    return cls('F!',children=children)
             elif elem.tag == MathML.msqrt:
                 root = cls('R!')
                 root.set_within(infer_mrow(elem,children))
@@ -838,7 +827,9 @@ class MathSymbol:
                 if not ensure(children,2): # should never happen
                     return cls('E!'+short_tag,children=children)
                 else:
-                    return cls('R!',pre_above=children[1],within=children[0])
+                    children[0].set_label("w")
+                    children[1].set_label("c")
+                    return cls('R!',children=children)
             elif elem.tag == MathML.merror:
                 root = cls('E!')
                 root.set_within(infer_mrow(elem,children))
@@ -858,7 +849,7 @@ class MathSymbol:
                     row.append(child)
                 closing = elem.attrib.get('close', ')').replace("]","&rsqb;")
                 row.append(cls(closing))
-                return cls.list2matrix(row, separators, elem)
+                return cls.list2matrix(row, separators)
             elif elem.tag == MathML.menclose:
                 root = cls(elem.attrib.get('notation', 'longdiv'))
                 root.set_within(infer_mrow(elem,children))
@@ -888,7 +879,7 @@ class MathSymbol:
                     root = cls.make_matrix([children[0]],elem)
                 else:
                     root = children[0]                
-                root.under = children[1]
+                root.set_under(children[1])
                 return root
             elif elem.tag == MathML.msup:
                 if not ensure(children,2):
@@ -899,13 +890,13 @@ class MathSymbol:
                         root = cls.make_matrix([children[0]],elem)
                     else:
                         root = children[0]                
-                    root.above = children[1]
+                    root.set_above(children[1])
                 else:
                     if children[0].next() or children[0].over():  # might have an accent on the operator
                         root = cls.make_matrix([children[0]],elem)
                     else:
                         root = children[0]                
-                    root.over = children[1]
+                    root.set_over(children[1])
                 return root
             elif elem.tag == MathML.mover: # FWT - split sup from over
                 if not ensure(children,2):
@@ -914,7 +905,7 @@ class MathSymbol:
                     root = cls.make_matrix([children[0]],elem)
                 else:
                     root = children[0]                
-                root.over = children[1]
+                root.set_over(children[1])
                 return root
             elif elem.tag == MathML.msubsup:
                 if not ensure(children,3):
@@ -925,15 +916,15 @@ class MathSymbol:
                         root = cls.make_matrix([children[0]],elem)
                     else:
                         root = children[0]                
-                    root.below = children[1]
-                    root.above = children[2]
+                    root.set_below(children[1])
+                    root.set_above(children[2])
                 else:
                     if children[0].next() or children[0].under() or children[0].over():  # cascaded use can happen
                         root = cls.make_matrix([children[0]],elem)
                     else:
                         root = children[0]                
-                    root.under = children[1]
-                    root.over = children[2]
+                    root.set_under(children[1])
+                    root.set_over(children[2])
                 return root
             elif elem.tag == MathML.munderover: # split from subsup
                 if not ensure(children,3):
@@ -942,8 +933,8 @@ class MathSymbol:
                     root = cls.make_matrix([children[0]],elem)
                 else:
                     root = children[0]                
-                root.under = children[1]
-                root.over = children[2]
+                root.set_under(children[1])
+                root.set_over(children[2])
                 return root
             elif elem.tag == MathML.mprescripts:
                 return "PreScript"
@@ -967,7 +958,7 @@ class MathSymbol:
                     sup = children[2] if prescript > 3 or (children[2] and children[2].tag != "W!") else None
                     children[0].set_above(sup)
                     for i in range(3,prescript,2):
-                        sub.next = children[i] 
+                        sub.set_next(children[i])
                         sub = sub.next()
                         sup.set_next(children[i+1]) 
                         sup = sup.next()
@@ -990,7 +981,7 @@ class MathSymbol:
                 if len(children) > 0:
                     root = children[0] if children[0] else cls('W!')
                     for i in range(1,len(children)):
-                        children[i-1].element = children[i]  # link by e edges
+                        children[i-1].set_element(children[i])  # link by e edges
                     return root
                 else:
                     return cls('W!')
