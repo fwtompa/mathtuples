@@ -515,7 +515,7 @@ class MathSymbol:
                 else:
                     mnode.set_within(cls('W!')) # does this need the mathml attribute set?
                     if len(children) == 3:
-                        mnode.within.set_next(children[1]) # set the next field to be the separator
+                        mnode.within().set_next(children[1]) # set the next field to be the separator
                     else:
                         children.insert(1,None) # insert a dummy element as first child so that separator is next
                 elem = mnode.within() # mark the start of the matrix element
@@ -1004,7 +1004,7 @@ class MathSymbol:
                         elem = elem.next()
                     elem.set_next(children[i])
                 while elem.next():
-                    if elem.next.tag == "&comma;" and not elem.next().next():
+                    if elem.next().tag == "&comma;" and not elem.next().next():
                         elem.del_next()   # remove commas between matrix elements (mrow)
                     else:
                         elem = elem.next()
