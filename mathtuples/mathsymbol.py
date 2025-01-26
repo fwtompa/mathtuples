@@ -1195,6 +1195,8 @@ class MathSymbol:
                     return op_root
 
                 elif op_root.tag == "A!root":
+                    if op_root.children:  # this has already been applied: <apply><apply><root/><...></apply</apply>
+                        return op_root
                     main_operand = children[-1]
                     if children[1].tag == 'A!degree':
                         degree = children[1].children[0]
