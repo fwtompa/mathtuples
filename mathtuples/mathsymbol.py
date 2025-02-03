@@ -747,7 +747,7 @@ class MathSymbol:
         # for c in children:
         #     print(c.toString())
 
-        short_tag = elem.tag[element.tag.index("}")+1:]
+        short_tag = elem.tag[elem.tag.index("}")+1:]
 
         """
         ---------------------------------------------------
